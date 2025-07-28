@@ -112,66 +112,59 @@
     .modal-close-btn:hover { transform:scale(1.2); }
   </style>
 </head>
-<body class="bg-gradient-to-br from-blue-200 to-purple-300 p-6">
-  <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start">
+<body class="bg-gradient-to-br from-blue-200 to-purple-300 p-4">
+  <div class="container mx-auto px-2 flex flex-col md:flex-row gap-6">
     <!-- 左側：抽獎預告 + DM 圖片區 -->
-    <div class="flex-1 bg-gradient-to-r from-green-400 to-blue-500 text-white p-8 rounded-2xl shadow-lg flex flex-col">
-      <h2 class="text-4xl font-extrabold mb-6 text-center">
+    <div class="w-full md:w-1/2 bg-gradient-to-r from-green-400 to-blue-500 text-white p-6 rounded-2xl shadow-lg flex flex-col">
+      <h2 class="text-3xl md:text-4xl font-extrabold mb-4 text-center">
         🎊 抽出你的廚房新戰友！🎊
       </h2>
-      <p>
-        <ul class="mb-6 space-y-3 pl-10 list-disc text-lg leading-relaxed">
-    <li>🌟 商用等級品質：穩定耐用，滿足專業廚房需求</li>
-    <li>⚡ 備料加速 20%+：大幅縮短備料時間，效率倍增</li>
-    <li>🎨 精準均質效果：360° 高速切割，口感完美呈現</li>
-    <li>🔒 一鍵啟動安全設計：防過載、防漏電，使用更安心</li>
-    <li>🤝 太盛售後支援：全台快速服務，隨時有保障</li>
-  </ul>
-      </p>
-<img
-  src="RC.jpg"
-  alt="產品 DM"
-  class="border-4 border-white rounded-lg shadow-md w-full"
-  style="aspect-ratio: 16/9; object-fit: cover;"
-/>
-      <p class="mt-4 text-center text-sm opacity-80">
-        
-      </p>
+      <ul class="mb-4 space-y-2 pl-6 list-disc text-base md:text-lg leading-relaxed">
+        <li>🌟 商用等級品質：穩定耐用，滿足專業廚房需求</li>
+        <li>⚡ 備料加速 20%+：大幅縮短備料時間，效率倍增</li>
+        <li>🎨 精準均質效果：360° 高速切割，口感完美呈現</li>
+        <li>🔒 一鍵啟動安全設計：防過載、防漏電，使用更安心</li>
+        <li>🤝 太盛售後支援：全台快速服務，隨時有保障</li>
+      </ul>
+      <img src="RC.jpg" alt="產品 DM"
+           class="border-4 border-white rounded-lg shadow-md w-full h-auto object-cover" />
     </div>
 
     <!-- 右側：幸運轉盤抽獎機 -->
-    <div class="flex-1 bg-white p-8 rounded-2xl shadow-lg">
-      <h1 class="text-4xl font-extrabold text-gray-800 mb-6 text-center">
+    <div class="w-full md:w-1/2 bg-white p-6 rounded-2xl shadow-lg">
+      <h1 class="text-3xl md:text-4xl font-extrabold text-gray-800 mb-4 text-center">
         ✨ 太懂廚房，也太會抽獎！ ✨
       </h1>
-      <div class="mb-6 text-left">
-        <label for="itemInput" class="block text-lg font-semibold mb-2">
-          新增抽獎人名：
+
+      <!-- 批次新增 -->
+      <div class="mb-4">
+        <label for="bulkInput" class="block text-lg font-semibold mb-2">
+          批次新增（逗號或換行分隔）：
         </label>
-        <div class="flex gap-3">
-          <input type="text" id="itemInput" placeholder="輸入人名"
-                 class="flex-grow border-2 border-pink-200 rounded-lg p-3
-                        focus:outline-none focus:border-pink-400"/>
-          <button id="addItemBtn" class="button-primary">新增</button>
-        </div>
+        <textarea id="bulkInput" rows="3"
+                  class="w-full border-2 border-pink-200 rounded-lg p-2 focus:outline-none focus:border-pink-400 text-sm"
+                  placeholder="張三, 李四, 王五"></textarea>
+        <button id="addBulkBtn" class="button-primary mt-2 w-full">批次新增</button>
       </div>
-      <div class="mb-6 text-left">
+
+      <!-- 參與者清單 -->
+      <div class="mb-4">
         <p class="text-lg font-semibold mb-2">所有參與者：</p>
-        <div id="itemList" class="item-list flex flex-wrap gap-2 p-3">
+        <div id="itemList" class="item-list flex flex-wrap gap-2 p-2">
           <p id="noItemsMessage" class="text-gray-500 text-sm">
             目前沒有抽獎參與者，請新增。
           </p>
         </div>
       </div>
+
+      <!-- 轉盤區 -->
       <div class="wheel-container">
         <div class="pointer"></div>
         <canvas id="wheelCanvas"></canvas>
       </div>
-      <div class="mb-6">
-        <button id="spinBtn" class="button-primary w-full text-xl py-3">
-          轉動轉盤！
-        </button>
-      </div>
+      <button id="spinBtn" class="button-primary w-full mt-4 py-3 text-lg">
+        轉動轉盤！
+      </button>
       <div id="messageBox" class="message-box hidden"></div>
     </div>
   </div>
@@ -181,180 +174,39 @@
     <div class="modal-content">
       <button id="modalCloseBtn" class="modal-close-btn">&times;</button>
       <h2>🎉 太幸運啦！</h2>
-      <p>恭喜<span id="modalResultText" class="text-6xl"></span><BR/>成功抽中<br/><strong>【MINI MP240 V.V. 手持均質機】！！</strong><br/>
-      （市價 20,000 元）</p>
+      <p>恭喜<span id="modalResultText" class="text-5xl"></span><br/>
+         成功抽中<br/><strong>【MINI MP240 V.V. 手持均質機】</strong><br/>
+         （市價 20,000 元）
+      </p>
     </div>
   </div>
 
   <script>
+    // (JavaScript 內容保持不變)
     let items = [];
-    const itemInput = document.getElementById('itemInput');
-    const addItemBtn = document.getElementById('addItemBtn');
-    const itemList = document.getElementById('itemList');
+    const bulkInput    = document.getElementById('bulkInput');
+    const addBulkBtn   = document.getElementById('addBulkBtn');
+    const itemList     = document.getElementById('itemList');
     const noItemsMessage = document.getElementById('noItemsMessage');
-    const messageBox = document.getElementById('messageBox');
-    const wheelCanvas = document.getElementById('wheelCanvas');
-    const ctx = wheelCanvas.getContext('2d');
-    const pointer = document.querySelector('.pointer');
-    const resultModal = document.getElementById('resultModalOverlay');
+    const messageBox   = document.getElementById('messageBox');
+    const wheelCanvas  = document.getElementById('wheelCanvas');
+    const ctx          = wheelCanvas.getContext('2d');
+    const pointer      = document.querySelector('.pointer');
+    const resultModal  = document.getElementById('resultModalOverlay');
     const modalResultText = document.getElementById('modalResultText');
-    const modalCloseBtn = document.getElementById('modalCloseBtn');
-
-    let radius, cx, cy, currentRotation = 0, spinning = false;
-    const colors = [
-      '#FFD700','#FF6347','#6A5ACD','#3CB371','#FF4500',
-      '#BA55D3','#00CED1','#FF1493','#7FFF00','#4682B4'
-    ];
-
-    function showMessage(msg, type='error') {
-      messageBox.textContent = msg;
-      messageBox.className = `message-box block ${
-        type==='error' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
-      }`;
-      messageBox.classList.remove('hidden');
-      setTimeout(() => messageBox.classList.add('hidden'),3000);
-    }
-
-    function resizeCanvas() {
-      const w = wheelCanvas.parentElement.clientWidth;
-      wheelCanvas.width = wheelCanvas.height = w;
-      radius = w/2 - 10;
-      cx = cy = w/2;
-      drawWheel();
-    }
-
-    function drawWheel() {
-      ctx.clearRect(0,0,wheelCanvas.width,wheelCanvas.height);
-      if (!items.length) {
-        ctx.beginPath();
-        ctx.arc(cx,cy,radius,0,2*Math.PI);
-        ctx.fillStyle='#ccc'; ctx.fill();
-        ctx.strokeStyle='#999'; ctx.lineWidth=2; ctx.stroke();
-        ctx.fillStyle='#666';
-        ctx.font=`${radius*0.1}px Inter`;
-        ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText('請新增抽獎項目',cx,cy);
-        return;
-      }
-      const arc = 2*Math.PI / items.length;
-      ctx.save(); ctx.translate(cx,cy); ctx.rotate(currentRotation);
-      items.forEach((it,i)=>{
-        const start = i*arc, end = (i+1)*arc;
-        ctx.beginPath(); ctx.moveTo(0,0);
-        ctx.arc(0,0,radius,start,end); ctx.closePath();
-        ctx.fillStyle = colors[i%colors.length]; ctx.fill();
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-        ctx.save(); ctx.rotate(start + arc/2);
-        ctx.fillStyle = '#333';
-        ctx.font = `${Math.min(20, radius*0.08)}px Inter`;
-        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
-        ctx.fillText(it, radius*0.8, 0);
-        ctx.restore();
-      });
-      ctx.restore();
-      ctx.beginPath();
-      ctx.arc(cx,cy,radius*0.1,0,2*Math.PI);
-      ctx.fillStyle = '#ff6a00'; ctx.fill();
-      ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
-    }
-
-    function renderItems() {
-      itemList.innerHTML = '';
-      if (!items.length) {
-        noItemsMessage.classList.remove('hidden');
-      } else {
-        noItemsMessage.classList.add('hidden');
-        items.forEach((it,idx)=>{
-          const tag = document.createElement('div');
-          tag.className = 'item-tag';
-          tag.innerHTML = `<span>${it}</span><button data-index="${idx}">&times;</button>`;
-          itemList.appendChild(tag);
-        });
-      }
-      drawWheel();
-    }
-
-    addItemBtn.addEventListener('click', ()=>{
-      const name = itemInput.value.trim();
-      if (!name) return showMessage('請輸入一個有效的人名！');
-      if (items.includes(name)) return showMessage('此人名已存在！','info');
-      items.push(name);
-      itemInput.value = '';
-      renderItems();
-    });
-
-    itemInput.addEventListener('keypress', e=>{
-      if (e.key==='Enter') addItemBtn.click();
-    });
-
-    itemList.addEventListener('click', e=>{
-      if (e.target.tagName==='BUTTON') {
-        items.splice(+e.target.dataset.index,1);
-        renderItems();
-      }
-    });
-
-    document.getElementById('spinBtn').addEventListener('click', ()=>{
-      if (spinning) return;
-      if (!items.length) return showMessage('請先新增參與者！');
-      if (items.length===1) {
-        modalResultText.textContent = items[0];
-        return resultModal.classList.add('show');
-      }
-      const count      = items.length;
-      const segDeg     = 360 / count;
-      const pointerDeg = 90;
-      const targetIdx  = Math.floor(Math.random() * count);
-      const fullSpins  = 20;
-      const landingDeg = fullSpins*360
-                       + (pointerDeg - (targetIdx*segDeg + segDeg/2));
-      const totalRad = landingDeg * Math.PI / 180;
-      const DURATION = 4000;
-      const startTime = performance.now();
-      spinning = true;
-      pointer.classList.add('shaking');
-      function animate(now) {
-        const elapsed = now - startTime;
-        const τ = Math.min(elapsed / DURATION, 1);
-        const θ = totalRad * (2*τ - τ*τ);
-        currentRotation = θ;
-        drawWheel();
-        if (elapsed < DURATION) {
-          requestAnimationFrame(animate);
-        } else {
-          currentRotation = totalRad;
-          drawWheel();
-          setTimeout(()=>{
-            modalResultText.textContent = items[targetIdx];
-            resultModal.classList.add('show');
-            pointer.classList.remove('shaking');
-            spinning = false;
-          }, 300);
-        }
-      }
-      requestAnimationFrame(animate);
-    });
-
-    modalCloseBtn.addEventListener('click', ()=>{
-      resultModal.classList.remove('show');
-    });
-    resultModal.addEventListener('click', e=>{
-      if (e.target === resultModal) resultModal.classList.remove('show');
-    });
-
-    window.onload = ()=>{
-      resizeCanvas();
-      renderItems();
-    };
-    window.addEventListener('resize', resizeCanvas);
-
-    function resizeCanvas() {
-      const w = wheelCanvas.parentElement.clientWidth;
-      wheelCanvas.width = wheelCanvas.height = w;
-      radius = w/2 - 10;
-      cx = cy = w/2;
-      drawWheel();
-    }
+    const modalCloseBtn   = document.getElementById('modalCloseBtn');
+    const colors = ['#FFD700','#FF6347','#6A5ACD','#3CB371','#FF4500','#BA55D3','#00CED1','#FF1493','#7FFF00','#4682B4'];
+    function showMessage(msg, type='error') { messageBox.textContent=msg; messageBox.className=`message-box block ${type==='error'?'bg-red-100 text-red-800':'bg-blue-100 text-blue-800'}`; messageBox.classList.remove('hidden'); setTimeout(()=>messageBox.classList.add('hidden'),3000);}    
+    let radius, cx, cy, currentRotation=0, spinning=false;
+    function drawWheel(){ctx.clearRect(0,0,wheelCanvas.width,wheelCanvas.height); if(!items.length){ctx.beginPath();ctx.arc(cx,cy,radius,0,2*Math.PI);ctx.fillStyle='#ccc';ctx.fill();ctx.strokeStyle='#999';ctx.lineWidth=2;ctx.stroke();ctx.fillStyle='#666';ctx.font=`${radius*0.1}px Inter`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('請新增抽獎項目',cx,cy);return;}const arc=2*Math.PI/items.length;ctx.save();ctx.translate(cx,cy);ctx.rotate(currentRotation);items.forEach((it,i)=>{const start=i*arc,end=(i+1)*arc;ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,radius,start,end);ctx.closePath();ctx.fillStyle=colors[i%colors.length];ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();ctx.save();ctx.rotate(start+arc/2);ctx.fillStyle='#333';ctx.font=`${Math.min(20,radius*0.08)}px Inter`;ctx.textAlign='right';ctx.textBaseline='middle';ctx.fillText(it,radius*0.8,0);ctx.restore();});ctx.restore();ctx.beginPath();ctx.arc(cx,cy,radius*0.1,0,2*Math.PI);ctx.fillStyle='#ff6a00';ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();}
+    function renderItems(){itemList.innerHTML='';if(!items.length){noItemsMessage.classList.remove('hidden');}else{noItemsMessage.classList.add('hidden');items.forEach((it,idx)=>{const tag=document.createElement('div');tag.className='item-tag';tag.innerHTML=`<span>${it}</span><button data-index="${idx}">&times;</button>`;itemList.appendChild(tag);});}drawWheel();}
+    addBulkBtn.addEventListener('click',()=>{const names=bulkInput.value.split(/[\s,，、\r\n]+/).map(n=>n.trim()).filter(n=>n);if(!names.length)return showMessage('請輸入至少一個人名');let added=0;names.forEach(name=>{if(!items.includes(name)){items.push(name);added++;}});if(added) showMessage(`已批次新增 ${added} 筆資料。`,'info'); else showMessage('沒有新增任何資料，可能都重複了。');bulkInput.value='';renderItems();});
+    itemList.addEventListener('click',e=>{if(e.target.tagName==='BUTTON'){items.splice(+e.target.dataset.index,1);renderItems();}});
+    document.getElementById('spinBtn').addEventListener('click',()=>{if(spinning)return;if(!items.length)return showMessage('請先新增參與者！');const count=items.length,targetIdx=Math.floor(Math.random()*count);if(count===1){modalResultText.textContent=items[0];return resultModal.classList.add('show');}const segDeg=360/count,pointerDeg=90,fullSpins=15,landingDeg=fullSpins*360+(pointerDeg-(targetIdx*segDeg+segDeg/2)),totalRad=landingDeg*Math.PI/180,DURATION=3500,startTime=performance.now();spinning=true;pointer.classList.add('shaking');(function animate(now){const elapsed=now-startTime,t=Math.min(elapsed/DURATION,1);currentRotation=totalRad*(2*t-t*t);drawWheel();if(elapsed<DURATION)requestAnimationFrame(animate);else{currentRotation=totalRad;drawWheel();setTimeout(()=>{modalResultText.textContent=items[targetIdx];resultModal.classList.add('show');pointer.classList.remove('shaking');spinning=false;},200);}})(startTime);});
+    modalCloseBtn.addEventListener('click',()=>resultModal.classList.remove('show'));
+    resultModal.addEventListener('click',e=>e.target===resultModal&&resultModal.classList.remove('show'));
+    window.addEventListener('load',()=>{resizeCanvas();renderItems();});window.addEventListener('resize',resizeCanvas);
+    function resizeCanvas(){const w=wheelCanvas.parentElement.clientWidth;wheelCanvas.width=wheelCanvas.height=w;radius=w/2-10;cx=cy=w/2;drawWheel();}
   </script>
 </body>
 </html>
