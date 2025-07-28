@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>活動抽獎｜幸運轉盤</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 共用樣式 */
+    .button-primary {
+      background-image: linear-gradient(to right,#ee0979,#ff6a00);
+      color:#fff; padding:.75rem 1.5rem; border-radius:.75rem;
+      font-weight:bold; box-shadow:0 4px 15px rgba(238,9,121,0.4);
+      border:none; cursor:pointer; transition:all .3s;
+    }
+    .button-primary:hover {
+      transform:translateY(-3px);
+      box-shadow:0 8px 20px rgba(238,9,121,0.6);
+    }
+    .message-box {
+      background:#fee2e2; color:#991b1b;
+      padding:1rem; border-radius:.75rem;
+      margin-top:1rem; animation:fadeIn .5s;
+    }
+    @keyframes fadeIn {
+      from { opacity:0; transform:translateY(10px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+    .item-list {
+      background:#fff0f6; border-radius:1rem;
+      padding:1rem; min-height:80px; max-height:150px;
+      overflow-y:auto; border:1px solid #fbcfe8;
+    }
+    .item-tag {
+      background:#fce7f3; color:#be185d;
+      padding:.3rem .7rem; border-radius:.5rem;
+      font-size:.9rem; display:inline-flex;
+      align-items:center; margin:.25rem; gap:.25rem;
+      box-shadow:0 1px 3px rgba(0,0,0,0.1);
+    }
+    .item-tag button {
+      background:none; border:none; cursor:pointer;
+      color:#be185d; font-weight:bold; font-size:1rem;
+    }
+    .wheel-container {
+      position:relative; width:100%; max-width:450px;
+      margin:1.5rem auto; aspect-ratio:1/1;
+    }
+    #wheelCanvas {
+      display:block; margin:0 auto;
+      border:5px solid #ffc0cb; border-radius:50%;
+      box-shadow:0 0 20px rgba(255,192,203,.8),
+                0 0 40px rgba(255,192,203,.4);
+      background:#fff;
+    }
+    .pointer {
+      position:absolute; bottom:-25px; left:50%;
+      transform:translateX(-50%);
+      width:0; height:0;
+      border-left:20px solid transparent;
+      border-right:20px solid transparent;
+      border-top:25px solid #ff6a00;
+      filter:drop-shadow(0 5px 5px rgba(0,0,0,.3));
+      z-index:10;
+    }
+    @keyframes shake-pointer {
+      0%   { transform:translateX(-50%) rotate(0deg); }
+      25%  { transform:translateX(-50%) rotate(-2deg); }
+      50%  { transform:translateX(-50%) rotate(0deg); }
+      75%  { transform:translateX(-50%) rotate(2deg); }
+      100% { transform:translateX(-50%) rotate(0deg); }
+    }
+    .pointer.shaking {
+      animation:shake-pointer .1s infinite alternate;
+    }
+    .modal-overlay {
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,.6);
+      display:flex; justify-content:center; align-items:center;
+      opacity:0; visibility:hidden; transition:.3s; z-index:9999;
+    }
+    .modal-overlay.show {
+      opacity:1; visibility:visible;
+    }
+    .modal-content {
+      background-image:linear-gradient(to right,#a7f3d0,#34d399);
+      color:#065f46; padding:2.5rem; border-radius:1.5rem;
+      box-shadow:0 10px 30px rgba(0,0,0,.3);
+      text-align:center; position:relative;
+      transform:scale(0.8); animation:bounceIn .8s ease-out;
+      max-width:400px; width:90%;
+    }
+    @keyframes bounceIn {
+      0%   { transform:scale(0.8); }
+      60%  { transform:scale(1.05); }
+      100% { transform:scale(1); }
+    }
+    .modal-content h2 {
+      font-size:2.5rem; font-weight:bold;
+      margin-bottom:1rem; color:#047857;
+      text-shadow:1px 1px 2px rgba(0,0,0,.1);
+    }
+    .modal-content p {
+      font-size:1.8rem; font-weight:bold;
+      color:#064e3b; margin-bottom:1.5rem;
+    }
+    .modal-close-btn {
+      position:absolute; top:1rem; right:1rem;
+      background:none; border:none; font-size:2rem;
+      color:#065f46; cursor:pointer; transition:.2s;
+    }
+    .modal-close-btn:hover { transform:scale(1.2); }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-blue-200 to-purple-300 p-6">
+  <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start">
+    <!-- 左側：抽獎預告 + DM 圖片區 -->
+    <div class="flex-1 bg-gradient-to-r from-green-400 to-blue-500 text-white p-8 rounded-2xl shadow-lg flex flex-col">
+      <h2 class="text-4xl font-extrabold mb-6 text-center">
+        🎊 抽出你的廚房新戰友！🎊
+      </h2>
+      <ul class="mb-6 space-y-3 pl-10 list-disc text-lg leading-relaxed">
+        <li>🌟 商用等級品質：穩定耐用，滿足專業廚房需求</li>
+        <li>⚡ 備料加速 20%+：大幅縮短備料時間，效率倍增</li>
+        <li>🎨 精準均質效果：360° 高速切割，口感完美呈現</li>
+        <li>🔒 一鍵啟動安全設計：防過載、防漏電，使用更安心</li>
+        <li>🤝 太盛售後支援：全台快速服務，隨時有保障</li>
+      </ul>
+      <img src="RC.jpg" alt="產品 DM"
+           class="border-4 border-white rounded-lg shadow-md w-full"
+           style="aspect-ratio:16/9; object-fit:cover;" />
+    </div>
+
+    <!-- 右側：幸運轉盤抽獎機 -->
+    <div class="flex-1 bg-white p-8 rounded-2xl shadow-lg">
+      <h1 class="text-4xl font-extrabold text-gray-800 mb-6 text-center">
+        ✨ 太懂廚房，也太會抽獎！ ✨
+      </h1>
+
+      <!-- 批次新增 -->
+      <div class="mb-6 text-left">
+        <label for="bulkInput" class="block text-lg font-semibold mb-2">
+          批次新增（逗號或換行分隔）：
+        </label>
+        <textarea id="bulkInput" rows="3"
+                  class="w-full border-2 border-pink-200 rounded-lg p-3 focus:outline-none focus:border-pink-400"
+                  placeholder="張三, 李四, 王五"></textarea>
+        <button id="addBulkBtn" class="button-primary mt-2">批次新增</button>
+      </div>
+
+      <!-- 參與者清單 -->
+      <div class="mb-6 text-left">
+        <p class="text-lg font-semibold mb-2">所有參與者：</p>
+        <div id="itemList" class="item-list flex flex-wrap gap-2 p-3">
+          <p id="noItemsMessage" class="text-gray-500 text-sm">
+            目前沒有抽獎參與者，請新增。
+          </p>
+        </div>
+      </div>
+
+      <!-- 轉盤區 -->
+      <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheelCanvas"></canvas>
+      </div>
+      <div class="mb-6">
+        <button id="spinBtn" class="button-primary w-full text-xl py-3">
+          轉動轉盤！
+        </button>
+      </div>
+      <div id="messageBox" class="message-box hidden"></div>
+    </div>
+  </div>
+
+  <!-- 結果彈窗 -->
+  <div id="resultModalOverlay" class="modal-overlay">
+    <div class="modal-content">
+      <button id="modalCloseBtn" class="modal-close-btn">&times;</button>
+      <h2>🎉 太幸運啦！</h2>
+      <p>恭喜<span id="modalResultText" class="text-6xl"></span><br/>
+         成功抽中<br/><strong>【MINI MP240 V.V. 手持均質機】</strong><br/>
+         （市價 20,000 元）
+      </p>
+    </div>
+  </div>
+
+  <script>
+    // 資料與元素
+    let items = [];
+    const bulkInput    = document.getElementById('bulkInput');
+    const addBulkBtn   = document.getElementById('addBulkBtn');
+    const itemList     = document.getElementById('itemList');
+    const noItemsMessage = document.getElementById('noItemsMessage');
+    const messageBox   = document.getElementById('messageBox');
+    const wheelCanvas  = document.getElementById('wheelCanvas');
+    const ctx          = wheelCanvas.getContext('2d');
+    const pointer      = document.querySelector('.pointer');
+    const resultModal  = document.getElementById('resultModalOverlay');
+    const modalResultText = document.getElementById('modalResultText');
+    const modalCloseBtn   = document.getElementById('modalCloseBtn');
+
+    // 顏色陣列
+    const colors = [
+      '#FFD700','#FF6347','#6A5ACD','#3CB371','#FF4500',
+      '#BA55D3','#00CED1','#FF1493','#7FFF00','#4682B4'
+    ];
+
+    // 顯示提示訊息
+    function showMessage(msg, type='error') {
+      messageBox.textContent = msg;
+      messageBox.className = `message-box block ${
+        type==='error' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
+      }`;
+      messageBox.classList.remove('hidden');
+      setTimeout(() => messageBox.classList.add('hidden'), 3000);
+    }
+
+    // 渲染清單與轉盤
+    let radius, cx, cy, currentRotation = 0, spinning = false;
+    function drawWheel() {
+      ctx.clearRect(0,0,wheelCanvas.width,wheelCanvas.height);
+      if (!items.length) {
+        ctx.beginPath();
+        ctx.arc(cx,cy,radius,0,2*Math.PI);
+        ctx.fillStyle='#ccc'; ctx.fill();
+        ctx.strokeStyle='#999'; ctx.lineWidth=2; ctx.stroke();
+        ctx.fillStyle='#666';
+        ctx.font=`${radius*0.1}px Inter`;
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText('請新增抽獎項目',cx,cy);
+        return;
+      }
+      const arc = 2*Math.PI / items.length;
+      ctx.save(); ctx.translate(cx,cy); ctx.rotate(currentRotation);
+      items.forEach((it,i)=>{
+        const start= i*arc, end=(i+1)*arc;
+        ctx.beginPath(); ctx.moveTo(0,0);
+        ctx.arc(0,0,radius,start,end); ctx.closePath();
+        ctx.fillStyle = colors[i%colors.length]; ctx.fill();
+        ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+        ctx.save(); ctx.rotate(start+arc/2);
+        ctx.fillStyle='#333';
+        ctx.font=`${Math.min(20, radius*0.08)}px Inter`;
+        ctx.textAlign='right'; ctx.textBaseline='middle';
+        ctx.fillText(it, radius*0.8, 0);
+        ctx.restore();
+      });
+      ctx.restore();
+      ctx.beginPath();
+      ctx.arc(cx,cy,radius*0.1,0,2*Math.PI);
+      ctx.fillStyle='#ff6a00'; ctx.fill();
+      ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
+    }
+
+    function renderItems() {
+      itemList.innerHTML = '';
+      if (!items.length) {
+        noItemsMessage.classList.remove('hidden');
+      } else {
+        noItemsMessage.classList.add('hidden');
+        items.forEach((it,idx)=>{
+          const tag = document.createElement('div');
+          tag.className = 'item-tag';
+          tag.innerHTML = `<span>${it}</span><button data-index="${idx}">&times;</button>`;
+          itemList.appendChild(tag);
+        });
+      }
+      drawWheel();
+    }
+
+    // 批次新增邏輯
+    addBulkBtn.addEventListener('click', () => {
+      const names = bulkInput.value.split(/[\s,，、\r\n]+/)
+                        .map(n=>n.trim())
+                        .filter(n=>n);
+      if (!names.length) return showMessage('請輸入至少一個人名');
+      let added=0;
+      names.forEach(name=>{
+        if (!items.includes(name)) { items.push(name); added++; }
+      });
+      if (added) showMessage(`已批次新增 ${added} 筆資料。`, 'info');
+      else showMessage('沒有新增任何資料，可能都重複了。');
+      bulkInput.value=''; renderItems();
+    });
+
+    // 刪除標籤
+    itemList.addEventListener('click', e=>{
+      if (e.target.tagName==='BUTTON') {
+        items.splice(+e.target.dataset.index,1);
+        renderItems();
+      }
+    });
+
+    // 轉盤抽獎
+    document.getElementById('spinBtn').addEventListener('click', ()=>{
+      if (spinning) return;
+      if (!items.length) return showMessage('請先新增參與者！');
+      const count=items.length;
+      const targetIdx = Math.floor(Math.random()*count);
+      if (count===1) {
+        modalResultText.textContent = items[0];
+        return resultModal.classList.add('show');
+      }
+      const segDeg=360/count, pointerDeg=90;
+      const fullSpins=15;
+      const landingDeg = fullSpins*360 + (pointerDeg - (targetIdx*segDeg + segDeg/2));
+      const totalRad = landingDeg * Math.PI/180;
+      const DURATION=3500, startTime=performance.now();
+      spinning=true; pointer.classList.add('shaking');
+      (function animate(now){
+        const elapsed = now - startTime;
+        const t = Math.min(elapsed/DURATION,1);
+        currentRotation = totalRad * (2*t - t*t);
+        drawWheel();
+        if (elapsed < DURATION) requestAnimationFrame(animate);
+        else {
+          currentRotation=totalRad; drawWheel();
+          setTimeout(()=>{      
+            modalResultText.textContent = items[targetIdx];
+            resultModal.classList.add('show');
+            pointer.classList.remove('shaking');
+            spinning=false;
+          },200);
+        }
+      })(startTime);
+    });
+
+    // 關閉彈窗
+    modalCloseBtn.addEventListener('click', ()=> resultModal.classList.remove('show'));
+    resultModal.addEventListener('click', e=> e.target===resultModal && resultModal.classList.remove('show'));
+
+    // 初始化與自適應
+    window.addEventListener('load', ()=>{ resizeCanvas(); renderItems(); });
+    window.addEventListener('resize', resizeCanvas);
+    function resizeCanvas() {
+      const w = wheelCanvas.parentElement.clientWidth;
+      wheelCanvas.width = wheelCanvas.height = w;
+      radius = w/2 - 10; cx = cy = w/2;
+      drawWheel();
+    }
+  </script>
+</body>
+</html>
