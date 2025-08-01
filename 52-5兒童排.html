@@ -18,8 +18,9 @@
     }
     .item-list {
       background:#fff0f6; border-radius:1rem;
-      padding:1rem; min-height:80px; 
+      padding:1rem; min-height:80px;
       overflow-y:auto; border:1px solid #fbcfe8;
+      height: 500px;
     }
     .item-tag {
       background:#fce7f3; color:#be185d;
@@ -116,11 +117,11 @@
       <label for="bulkInput" class="block text-lg font-semibold mb-2">
         批次新增任務（用逗號、空格或換行分隔）：
       </label>
-      <textarea id="bulkInput" rows="3" class="w-full border-2 border-yellow-300 rounded-lg p-3 text-lg" placeholder="唱一句你會的詩歌、大聲說主愛我、學青蛙跳3下"></textarea>
+      <textarea id="bulkInput" rows="3" class="w-full border-2 border-yellow-300 rounded-lg p-3 text-lg" placeholder="跳一段舞、大聲說主愛我、模仿一隻狗"></textarea>
       <button id="addBulkBtn" class="button-primary mt-4 w-full text-lg py-2">新增任務</button>
 
       <h2 class="text-lg font-semibold mt-6 mb-2">目前任務清單：</h2>
-      <div id="itemList" class="item-list h-[485px] w-full">
+      <div id="itemList" class="item-list w-full">
         <p id="noItemsMessage" class="text-gray-500 text-sm">尚未加入任何任務</p>
       </div>
     </div>
@@ -144,7 +145,8 @@
       <h2>🎉 任務來啦！</h2>
       <p><span id="modalResultText"></span></p>
     </div>
-  </div>  <script>
+  </div>
+  <script>
     let items = [];
     const colors = ['#F87171','#FBBF24','#34D399','#60A5FA','#A78BFA','#F472B6','#4ADE80'];
     const wheelCanvas = document.getElementById('wheelCanvas');
