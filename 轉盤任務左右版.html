@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>兒童排任務轉盤</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .button-primary {
+      background-image: linear-gradient(to right,#ee0979,#ff6a00);
+      color:#fff; padding:.75rem 1.5rem; border-radius:.75rem;
+      font-weight:bold; box-shadow:0 4px 15px rgba(238,9,121,0.4);
+      border:none; cursor:pointer; transition:all .3s;
+    }
+    .button-primary:hover {
+      transform:translateY(-3px);
+      box-shadow:0 8px 20px rgba(238,9,121,0.6);
+    }
+    .item-list {
+      background:#fff0f6; border-radius:1rem;
+      padding:1rem; min-height:80px; 
+      overflow-y:auto; border:1px solid #fbcfe8;
+    }
+    .item-tag {
+      background:#fce7f3; color:#be185d;
+      padding:.3rem .7rem; border-radius:.5rem;
+      font-size:.95rem; display:inline-flex;
+      align-items:center; margin:.25rem; gap:.25rem;
+      box-shadow:0 1px 3px rgba(0,0,0,0.1);
+    }
+    .item-tag button {
+      background:none; border:none; cursor:pointer;
+      color:#be185d; font-weight:bold; font-size:1rem;
+    }
+    .wheel-container {
+      position:relative; width:100%; aspect-ratio:1/1;
+    }
+    #wheelCanvas {
+      display:block; margin:0 auto;
+      border:5px solid #ffc0cb; border-radius:50%;
+      box-shadow:0 0 20px rgba(255,192,203,.8),
+                  0 0 40px rgba(255,192,203,.4);
+      background:#fff;
+    }
+    .pointer {
+      position:absolute; bottom:-25px; left:50%;
+      transform:translateX(-50%);
+      width:0; height:0;
+      border-left:20px solid transparent;
+      border-right:20px solid transparent;
+      border-top:25px solid #ff6a00;
+      filter:drop-shadow(0 5px 5px rgba(0,0,0,.3));
+      z-index:10;
+    }
+    .pointer.shaking {
+      animation:shake-pointer .1s infinite alternate;
+    }
+    @keyframes shake-pointer {
+      0%   { transform:translateX(-50%) rotate(0deg); }
+      25%  { transform:translateX(-50%) rotate(-2deg); }
+      50%  { transform:translateX(-50%) rotate(0deg); }
+      75%  { transform:translateX(-50%) rotate(2deg); }
+      100% { transform:translateX(-50%) rotate(0deg); }
+    }
+    .modal-overlay {
+      position:fixed; top:0; left:0; width:100%; height:100%;
+      background:rgba(0,0,0,.6);
+      display:flex; justify-content:center; align-items:center;
+      opacity:0; visibility:hidden; transition:.3s; z-index:9999;
+    }
+    .modal-overlay.show {
+      opacity:1; visibility:visible;
+    }
+    .modal-content {
+      background:#fff; padding:2rem; border-radius:1rem;
+      box-shadow:0 10px 30px rgba(0,0,0,.3);
+      text-align:center; position:relative;
+      transform:scale(0.8); animation:bounceIn .6s ease-out;
+      max-width:480px; width:90%;
+    }
+    @keyframes bounceIn {
+      0%   { transform:scale(0.8); }
+      60%  { transform:scale(1.05); }
+      100% { transform:scale(1); }
+    }
+    .modal-content h2 {
+      font-size:2rem; font-weight:bold; margin-bottom:1rem; color:#b91c1c;
+    }
+    .modal-content p {
+      font-size:1.3rem;
+      font-weight:bold;
+      color:#111827;
+      margin-bottom:1.5rem;
+      word-break: break-word;
+      white-space: pre-wrap;
+      max-height: 320px;
+      overflow-y: auto;
+      padding: 0.5rem;
+      line-height: 1.8;
+      text-align: center;
+    }
+    .modal-close-btn {
+      position:absolute; top:1rem; right:1rem;
+      background:none; border:none; font-size:2rem;
+      color:#9ca3af; cursor:pointer;
+    }
+  </style>
+</head>
+<body class="bg-gradient-to-br from-yellow-100 to-pink-200 p-6">
+  <div class="max-w-[1600px] mx-auto flex flex-col lg:flex-row gap-8">
+    <!-- 左邊：任務清單 -->
+    <div class="bg-white p-8 rounded-2xl shadow-md w-full lg:w-1/2">
+      <h1 class="text-4xl font-extrabold text-pink-700 mb-6 text-center">
+        🙋‍♂️ 主啊，今天的任務是什麼呢？
+      </h1>
+      <label for="bulkInput" class="block text-lg font-semibold mb-2">
+        批次新增任務（用逗號、空格或換行分隔）：
+      </label>
+      <textarea id="bulkInput" rows="3" class="w-full border-2 border-yellow-300 rounded-lg p-3 text-lg" placeholder="跳一段舞、大聲說主愛我、模仿一隻狗"></textarea>
+      <button id="addBulkBtn" class="button-primary mt-4 w-full text-lg py-2">新增任務</button>
+
+      <h2 class="text-lg font-semibold mt-6 mb-2">目前任務清單：</h2>
+      <div id="itemList" class="item-list h-[485px] w-full">
+        <p id="noItemsMessage" class="text-gray-500 text-sm">尚未加入任何任務</p>
+      </div>
+    </div>
+
+    <!-- 右邊：轉盤區 -->
+    <div class="bg-white p-8 rounded-2xl shadow-md w-full lg:w-1/2">
+      <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheelCanvas"></canvas>
+      </div>
+      <button id="spinBtn" class="button-primary w-full text-2xl py-4 mt-8">
+        🌀 抽出任務！
+      </button>
+    </div>
+  </div>
+
+  <!-- 結果彈窗 -->
+  <div id="resultModalOverlay" class="modal-overlay">
+    <div class="modal-content">
+      <button id="modalCloseBtn" class="modal-close-btn">&times;</button>
+      <h2>🎉 任務來啦！</h2>
+      <p><span id="modalResultText"></span></p>
+    </div>
+  </div>  <script>
+    let items = [];
+    const colors = ['#F87171','#FBBF24','#34D399','#60A5FA','#A78BFA','#F472B6','#4ADE80'];
+    const wheelCanvas = document.getElementById('wheelCanvas');
+    const ctx = wheelCanvas.getContext('2d');
+    const pointer = document.querySelector('.pointer');
+    const itemList = document.getElementById('itemList');
+    const noItemsMessage = document.getElementById('noItemsMessage');
+    const bulkInput = document.getElementById('bulkInput');
+    const addBulkBtn = document.getElementById('addBulkBtn');
+    const spinBtn = document.getElementById('spinBtn');
+    const resultModal = document.getElementById('resultModalOverlay');
+    const modalResultText = document.getElementById('modalResultText');
+    const modalCloseBtn = document.getElementById('modalCloseBtn');
+    let radius, cx, cy, currentRotation = 0, spinning = false;
+
+    function drawWheel() {
+      ctx.clearRect(0, 0, wheelCanvas.width, wheelCanvas.height);
+      if (!items.length) {
+        ctx.beginPath();
+        ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = '#ddd'; ctx.fill();
+        ctx.fillStyle = '#555'; ctx.font = '20px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText('請新增任務', cx, cy);
+        return;
+      }
+      const arc = 2 * Math.PI / items.length;
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(currentRotation);
+      items.forEach((it, i) => {
+        const start = i * arc, end = (i + 1) * arc;
+        ctx.beginPath(); ctx.moveTo(0, 0);
+        ctx.arc(0, 0, radius, start, end); ctx.closePath();
+        ctx.fillStyle = colors[i % colors.length]; ctx.fill();
+        ctx.strokeStyle = '#fff'; ctx.stroke();
+        ctx.save(); ctx.rotate(start + arc / 2);
+        ctx.fillStyle = '#333';
+        const dynamicFontSize = Math.min(16, radius * 0.06);
+        ctx.font = `${dynamicFontSize}px sans-serif`;
+        ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+        ctx.fillText(it, radius * 0.85, 0);
+        ctx.restore();
+      });
+      ctx.restore();
+    }
+
+    function renderItems() {
+      itemList.innerHTML = '';
+      if (!items.length) {
+        noItemsMessage.classList.remove('hidden');
+      } else {
+        noItemsMessage.classList.add('hidden');
+        items.forEach((it, idx) => {
+          const tag = document.createElement('div');
+          tag.className = 'item-tag';
+          tag.innerHTML = `<span>${it}</span><button data-index="${idx}">&times;</button>`;
+          itemList.appendChild(tag);
+        });
+      }
+      drawWheel();
+    }
+
+    addBulkBtn.addEventListener('click', () => {
+      const names = bulkInput.value.split(/[\s,，、\r\n]+/)
+        .map(n => n.trim()).filter(n => n);
+      let added = 0;
+      names.forEach(name => {
+        if (!items.includes(name)) {
+          items.push(name);
+          added++;
+        }
+      });
+      bulkInput.value = '';
+      renderItems();
+    });
+
+    itemList.addEventListener('click', e => {
+      if (e.target.tagName === 'BUTTON') {
+        items.splice(+e.target.dataset.index, 1);
+        renderItems();
+      }
+    });
+
+    spinBtn.addEventListener('click', () => {
+      if (spinning || items.length === 0) return;
+      const count = items.length;
+      const targetIdx = Math.floor(Math.random() * count);
+      const segDeg = 360 / count, pointerDeg = 90;
+      const fullSpins = 10;
+      const landingDeg = fullSpins * 360 + (pointerDeg - (targetIdx * segDeg + segDeg / 2));
+      const totalRad = landingDeg * Math.PI / 180;
+      const DURATION = 3000;
+      const startTime = performance.now();
+      spinning = true; pointer.classList.add('shaking');
+      (function animate(now) {
+        const elapsed = now - startTime;
+        const t = Math.min(elapsed / DURATION, 1);
+        currentRotation = totalRad * (2 * t - t * t);
+        drawWheel();
+        if (elapsed < DURATION) requestAnimationFrame(animate);
+        else {
+          currentRotation = totalRad;
+          drawWheel();
+          pointer.classList.remove('shaking');
+          modalResultText.textContent = items[targetIdx];
+          resultModal.classList.add('show');
+          spinning = false;
+        }
+      })(startTime);
+    });
+
+    modalCloseBtn.addEventListener('click', () => resultModal.classList.remove('show'));
+    resultModal.addEventListener('click', e => {
+      if (e.target === resultModal) resultModal.classList.remove('show');
+    });
+
+    window.addEventListener('load', () => {
+      resizeCanvas(); renderItems();
+    });
+    window.addEventListener('resize', resizeCanvas);
+    function resizeCanvas() {
+      const w = wheelCanvas.parentElement.clientWidth;
+      wheelCanvas.width = wheelCanvas.height = w;
+      radius = w / 2 - 10; cx = cy = w / 2;
+      drawWheel();
+    }
+  </script>
+</body>
+</html>
