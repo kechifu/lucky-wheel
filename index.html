@@ -199,17 +199,18 @@
             overflow-y: auto;
         }
 
+        /* 任務內容文字優化：減小大小並增加與上方的間距 */
         .task-content {
-            font-size: clamp(1.5rem, 7vw, 4.2rem);
+            font-size: clamp(1.4rem, 5.5vw, 2.6rem);
             font-weight: 900;
-            margin-bottom: clamp(20px, 5vw, 40px);
-            line-height: 1.2;
+            margin-bottom: 20px;
+            line-height: 1.35;
             color: #4A443F;
         }
 
         /* 鼓勵語專用字體 */
         #enc-text {
-            font-size: clamp(1.8rem, 8vw, 3.5rem);
+            font-size: clamp(1.8rem, 8vw, 3.2rem);
             color: #FF8A80;
             margin-bottom: 10px;
             animation: bounce 1s infinite;
@@ -220,21 +221,29 @@
             50% { transform: scale(1.05); }
         }
 
+        /* 引導小語文字：增加下方間距解決與大字太近的問題 */
+        .task-pre-title {
+            font-size: clamp(0.85rem, 3.5vw, 1.1rem);
+            color: var(--text-light);
+            margin-bottom: 40px; /* 增加間距 */
+            font-weight: 600;
+        }
+
         .task-guide {
-            font-size: clamp(0.95rem, 4vw, 1.6rem);
+            font-size: clamp(0.95rem, 4vw, 1.5rem);
             color: #8D8276;
-            margin-bottom: clamp(30px, 8vw, 60px);
+            margin-bottom: clamp(30px, 8vw, 50px);
             background: #F9F7F5;
-            padding: 15px 20px;
+            padding: 15px 25px;
             border-radius: 15px;
             display: inline-block;
-            border-left: 6px solid var(--color-green);
+            border-left: 5px solid var(--color-green);
         }
 
         .button-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
 
         .btn {
-            padding: clamp(12px, 3vw, 22px) clamp(20px, 8vw, 60px);
+            padding: clamp(12px, 3vw, 20px) clamp(20px, 8vw, 50px);
             font-size: clamp(1rem, 4vw, 1.3rem);
             font-weight: bold;
             border: none;
@@ -252,10 +261,10 @@
         .btn-secondary { background: #F3F0EC; color: #9C948C; }
         .btn-danger { background: #FFAB91; color: white; }
 
-        /* 管理模式視窗修正 - 使用 flex-start 並增加 Padding-top 防止切掉最上方 */
+        /* 管理模式視窗修正 */
         .admin-view { 
             background: #fff; 
-            padding: 40px 20px 80px; /* 增加頂部與底部的間距 */
+            padding: 40px 20px 80px;
             overflow-y: auto; 
             text-align: left; 
             position: fixed; 
@@ -263,7 +272,7 @@
             z-index: 1000; 
             display: flex;
             flex-direction: column;
-            justify-content: flex-start; /* 修正：內容從頂部開始 */
+            justify-content: flex-start;
             align-items: center;
         }
 
@@ -375,11 +384,11 @@
         </div>
     </div>
 
-    <!-- 鼓勵語視窗 -->
+    <!-- 鼓勵語視窗 (優化顯示與穩定性) -->
     <div id="enc-view" class="view hidden">
-        <div class="card-task" style="border-color: #F3E5F5; overflow: hidden;">
-            <div id="enc-text" class="task-content">做得太棒了！ ❤️</div>
-            <div style="margin-top: 15px; font-size: 1.1rem; color: #A8A096;">[ 任務達成！正在回到冒險牆 ]</div>
+        <div class="card-task" style="border-color: #F3E5F5; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <div id="enc-text">做得太棒了！ ❤️</div>
+            <div style="margin-top: 25px; font-size: 1.1rem; color: #A8A096; letter-spacing: 1px;">[ 任務達成！正在回到冒險牆 ]</div>
         </div>
     </div>
 
@@ -460,14 +469,14 @@
         }
 
         const initialTasks = [
-            { id: "t1", content: "對大家說一次「主耶穌我愛你」", guide: "老師可以帶領大家一起回應他喔" },
+            { id: "t1", content: "大聲說一次「主耶穌我愛你」", guide: "老師可以帶領大家一起回應他喔" },
             { id: "t2", content: "找一位小朋友擊掌 High-five", guide: "把喜樂分享給身邊的朋友" },
             { id: "t3", content: "露出一個最大、最棒的笑容", guide: "喜樂的心乃是良藥" },
             { id: "t4", content: "學小羊咩咩叫 3 聲", guide: "我們都是主所愛護的小羊" },
             { id: "t5", content: "大聲宣佈：我是神的好孩子", guide: "展現神家小精兵的精神" },
             { id: "t14", content: "大聲呼求：喔，主耶穌！", guide: "最有能力的生命操練" }
         ];
-        const initialEncs = [ "做得太棒了！ ❤️", "你真的很寶貴，加油！", "真棒的操練！", "你是最勇敢的小精兵！", "大家都很為你開心！" ];
+        const initialEncs = [ "做得太棒了！ ❤️", "你真的很寶貴，加油！", "大家看見你的操練了，真棒！", "你是最勇敢的小精兵！", "大家都很為你開心！" ];
 
         let state = { 
             tasks: [], 
@@ -556,11 +565,14 @@
 
         function finishTask() {
             playSound('success');
-            // 隨機選取鼓勵語
+            // 選取鼓勵語：從 state 獲取最新資料
             const list = (state.encouragements && state.encouragements.length > 0) ? state.encouragements : initialEncs;
             const msg = list[Math.floor(Math.random() * list.length)];
             
-            document.getElementById('enc-text').innerText = msg;
+            // 寫入 DOM 並顯示
+            const encTextEl = document.getElementById('enc-text');
+            encTextEl.innerText = msg;
+            
             showView('enc-view'); 
             
             state.gridProgress[currentActiveIndex] = true; 
