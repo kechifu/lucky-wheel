@@ -1,343 +1,823 @@
 <!DOCTYPE html>
-<html lang="zh-Hant">
+<html lang="zh-TW">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>活動抽獎｜幸運轉盤</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    /* 共用樣式 */
-    .button-primary {
-      background-image: linear-gradient(to right,#ee0979,#ff6a00);
-      color:#fff; padding:.75rem 1.5rem; border-radius:.75rem;
-      font-weight:bold; box-shadow:0 4px 15px rgba(238,9,121,0.4);
-      border:none; cursor:pointer; transition:all .3s;
-    }
-    .button-primary:hover {
-      transform:translateY(-3px);
-      box-shadow:0 8px 20px rgba(238,9,121,0.6);
-    }
-    .message-box {
-      background:#fee2e2; color:#991b1b;
-      padding:1rem; border-radius:.75rem;
-      margin-top:1rem; animation:fadeIn .5s;
-    }
-    @keyframes fadeIn {
-      from { opacity:0; transform:translateY(10px); }
-      to { opacity:1; transform:translateY(0); }
-    }
-    .item-list {
-      background:#fff0f6; border-radius:1rem;
-      padding:1rem; min-height:80px; max-height:150px;
-      overflow-y:auto; border:1px solid #fbcfe8;
-    }
-    .item-tag {
-      background:#fce7f3; color:#be185d;
-      padding:.3rem .7rem; border-radius:.5rem;
-      font-size:.9rem; display:inline-flex;
-      align-items:center; margin:.25rem; gap:.25rem;
-      box-shadow:0 1px 3px rgba(0,0,0,0.1);
-    }
-    .item-tag button {
-      background:none; border:none; cursor:pointer;
-      color:#be185d; font-weight:bold; font-size:1rem;
-    }
-    .wheel-container {
-      position:relative; width:100%; max-width:450px;
-      margin:1.5rem auto; aspect-ratio:1/1;
-    }
-    #wheelCanvas {
-      display:block; margin:0 auto;
-      border:5px solid #ffc0cb; border-radius:50%;
-      box-shadow:0 0 20px rgba(255,192,203,.8),
-                0 0 40px rgba(255,192,203,.4);
-      background:#fff;
-    }
-    .pointer {
-      position:absolute; bottom:-25px; left:50%;
-      transform:translateX(-50%);
-      width:0; height:0;
-      border-left:20px solid transparent;
-      border-right:20px solid transparent;
-      border-top:25px solid #ff6a00;
-      filter:drop-shadow(0 5px 5px rgba(0,0,0,.3));
-      z-index:10;
-    }
-    @keyframes shake-pointer {
-      0%   { transform:translateX(-50%) rotate(0deg); }
-      25%  { transform:translateX(-50%) rotate(-2deg); }
-      50%  { transform:translateX(-50%) rotate(0deg); }
-      75%  { transform:translateX(-50%) rotate(2deg); }
-      100% { transform:translateX(-50%) rotate(0deg); }
-    }
-    .pointer.shaking {
-      animation:shake-pointer .1s infinite alternate;
-    }
-    .modal-overlay {
-      position:fixed; top:0; left:0; width:100%; height:100%;
-      background:rgba(0,0,0,.6);
-      display:flex; justify-content:center; align-items:center;
-      opacity:0; visibility:hidden; transition:.3s; z-index:9999;
-    }
-    .modal-overlay.show {
-      opacity:1; visibility:visible;
-    }
-    .modal-content {
-      background-image:linear-gradient(to right,#a7f3d0,#34d399);
-      color:#065f46; padding:2.5rem; border-radius:1.5rem;
-      box-shadow:0 10px 30px rgba(0,0,0,.3);
-      text-align:center; position:relative;
-      transform:scale(0.8); animation:bounceIn .8s ease-out;
-      max-width:400px; width:90%;
-    }
-    @keyframes bounceIn {
-      0%   { transform:scale(0.8); }
-      60%  { transform:scale(1.05); }
-      100% { transform:scale(1); }
-    }
-    .modal-content h2 {
-      font-size:2.5rem; font-weight:bold;
-      margin-bottom:1rem; color:#047857;
-      text-shadow:1px 1px 2px rgba(0,0,0,.1);
-    }
-    .modal-content p {
-      font-size:1.8rem; font-weight:bold;
-      color:#064e3b; margin-bottom:1.5rem;
-    }
-    .modal-close-btn {
-      position:absolute; top:1rem; right:1rem;
-      background:none; border:none; font-size:2rem;
-      color:#065f46; cursor:pointer; transition:.2s;
-    }
-    .modal-close-btn:hover { transform:scale(1.2); }
-  </style>
-</head>
-<body class="bg-gradient-to-br from-blue-200 to-purple-300 p-6">
-  <div class="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8 items-start">
-    <!-- 左側：抽獎預告 + DM 圖片區 -->
-    <div class="flex-1 bg-gradient-to-r from-green-400 to-blue-500 text-white p-8 rounded-2xl shadow-lg flex flex-col">
-      <h2 class="text-4xl font-extrabold mb-6 text-center">
-        🎊 抽出你的廚房新戰友！🎊
-      </h2>
-      <ul class="mb-6 space-y-3 pl-10 list-disc text-lg leading-relaxed">
-        <li>🌟 商用等級品質：穩定耐用，滿足專業廚房需求</li>
-        <li>⚡ 備料加速 20%+：大幅縮短備料時間，效率倍增</li>
-        <li>🎨 精準均質效果：360° 高速切割，口感完美呈現</li>
-        <li>🔒 一鍵啟動安全設計：防過載、防漏電，使用更安心</li>
-        <li>🤝 太盛售後支援：全台快速服務，隨時有保障</li>
-      </ul>
-      <img src="RC.jpg" alt="產品 DM"
-           class="border-4 border-white rounded-lg shadow-md w-full"
-           style="aspect-ratio:16/9; object-fit:cover;" />
-    </div>
-
-    <!-- 右側：幸運轉盤抽獎機 -->
-    <div class="flex-1 bg-white p-8 rounded-2xl shadow-lg">
-      <h1 class="text-4xl font-extrabold text-gray-800 mb-6 text-center">
-        ✨ 太懂廚房，也太會抽獎！ ✨
-      </h1>
-
-      <!-- 批次新增 -->
-      <div class="mb-6 text-left">
-        <label for="bulkInput" class="block text-lg font-semibold mb-2">
-          批次新增（逗號或換行分隔）：
-        </label>
-        <textarea id="bulkInput" rows="3"
-                  class="w-full border-2 border-pink-200 rounded-lg p-3 focus:outline-none focus:border-pink-400"
-                  placeholder="張三, 李四, 王五"></textarea>
-        <button id="addBulkBtn" class="button-primary mt-2">批次新增</button>
-      </div>
-
-      <!-- 參與者清單 -->
-      <div class="mb-6 text-left">
-        <p class="text-lg font-semibold mb-2">所有參與者：</p>
-        <div id="itemList" class="item-list flex flex-wrap gap-2 p-3">
-          <p id="noItemsMessage" class="text-gray-500 text-sm">
-            目前沒有抽獎參與者，請新增。
-          </p>
-        </div>
-      </div>
-
-      <!-- 轉盤區 -->
-      <div class="wheel-container">
-        <div class="pointer"></div>
-        <canvas id="wheelCanvas"></canvas>
-      </div>
-      <div class="mb-6">
-        <button id="spinBtn" class="button-primary w-full text-xl py-3">
-          轉動轉盤！
-        </button>
-      </div>
-      <div id="messageBox" class="message-box hidden"></div>
-    </div>
-  </div>
-
-  <!-- 結果彈窗 -->
-  <div id="resultModalOverlay" class="modal-overlay">
-    <div class="modal-content">
-      <button id="modalCloseBtn" class="modal-close-btn">&times;</button>
-      <h2>🎉 太幸運啦！</h2>
-      <p>恭喜<span id="modalResultText" class="text-6xl"></span><br/>
-         成功抽中<br/><strong>【MINI MP240 V.V. 手持均質機】</strong><br/>
-         （市價 20,000 元）
-      </p>
-    </div>
-  </div>
-
-  <script>
-    // 資料與元素
-    let items = [];
-    const bulkInput    = document.getElementById('bulkInput');
-    const addBulkBtn   = document.getElementById('addBulkBtn');
-    const itemList     = document.getElementById('itemList');
-    const noItemsMessage = document.getElementById('noItemsMessage');
-    const messageBox   = document.getElementById('messageBox');
-    const wheelCanvas  = document.getElementById('wheelCanvas');
-    const ctx          = wheelCanvas.getContext('2d');
-    const pointer      = document.querySelector('.pointer');
-    const resultModal  = document.getElementById('resultModalOverlay');
-    const modalResultText = document.getElementById('modalResultText');
-    const modalCloseBtn   = document.getElementById('modalCloseBtn');
-
-    // 顏色陣列
-    const colors = [
-      '#FFD700','#FF6347','#6A5ACD','#3CB371','#FF4500',
-      '#BA55D3','#00CED1','#FF1493','#7FFF00','#4682B4'
-    ];
-
-    // 顯示提示訊息
-    function showMessage(msg, type='error') {
-      messageBox.textContent = msg;
-      messageBox.className = `message-box block ${
-        type==='error' ? 'bg-red-100 text-red-800' : 'bg-blue-100 text-blue-800'
-      }`;
-      messageBox.classList.remove('hidden');
-      setTimeout(() => messageBox.classList.add('hidden'), 3000);
-    }
-
-    // 渲染清單與轉盤
-    let radius, cx, cy, currentRotation = 0, spinning = false;
-    function drawWheel() {
-      ctx.clearRect(0,0,wheelCanvas.width,wheelCanvas.height);
-      if (!items.length) {
-        ctx.beginPath();
-        ctx.arc(cx,cy,radius,0,2*Math.PI);
-        ctx.fillStyle='#ccc'; ctx.fill();
-        ctx.strokeStyle='#999'; ctx.lineWidth=2; ctx.stroke();
-        ctx.fillStyle='#666';
-        ctx.font=`${radius*0.1}px Inter`;
-        ctx.textAlign='center'; ctx.textBaseline='middle';
-        ctx.fillText('請新增抽獎項目',cx,cy);
-        return;
-      }
-      const arc = 2*Math.PI / items.length;
-      ctx.save(); ctx.translate(cx,cy); ctx.rotate(currentRotation);
-      items.forEach((it,i)=>{
-        const start= i*arc, end=(i+1)*arc;
-        ctx.beginPath(); ctx.moveTo(0,0);
-        ctx.arc(0,0,radius,start,end); ctx.closePath();
-        ctx.fillStyle = colors[i%colors.length]; ctx.fill();
-        ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
-        ctx.save(); ctx.rotate(start+arc/2);
-        ctx.fillStyle='#333';
-        ctx.font=`${Math.min(20, radius*0.08)}px Inter`;
-        ctx.textAlign='right'; ctx.textBaseline='middle';
-        ctx.fillText(it, radius*0.8, 0);
-        ctx.restore();
-      });
-      ctx.restore();
-      ctx.beginPath();
-      ctx.arc(cx,cy,radius*0.1,0,2*Math.PI);
-      ctx.fillStyle='#ff6a00'; ctx.fill();
-      ctx.strokeStyle='#fff'; ctx.lineWidth=2; ctx.stroke();
-    }
-
-    function renderItems() {
-      itemList.innerHTML = '';
-      if (!items.length) {
-        noItemsMessage.classList.remove('hidden');
-      } else {
-        noItemsMessage.classList.add('hidden');
-        items.forEach((it,idx)=>{
-          const tag = document.createElement('div');
-          tag.className = 'item-tag';
-          tag.innerHTML = `<span>${it}</span><button data-index="${idx}">&times;</button>`;
-          itemList.appendChild(tag);
-        });
-      }
-      drawWheel();
-    }
-
-    // 批次新增邏輯
-    addBulkBtn.addEventListener('click', () => {
-      const names = bulkInput.value.split(/[\s,，、\r\n]+/)
-                        .map(n=>n.trim())
-                        .filter(n=>n);
-      if (!names.length) return showMessage('請輸入至少一個人名');
-      let added=0;
-      names.forEach(name=>{
-        if (!items.includes(name)) { items.push(name); added++; }
-      });
-      if (added) showMessage(`已批次新增 ${added} 筆資料。`, 'info');
-      else showMessage('沒有新增任何資料，可能都重複了。');
-      bulkInput.value=''; renderItems();
-    });
-
-    // 刪除標籤
-    itemList.addEventListener('click', e=>{
-      if (e.target.tagName==='BUTTON') {
-        items.splice(+e.target.dataset.index,1);
-        renderItems();
-      }
-    });
-
-    // 轉盤抽獎
-    document.getElementById('spinBtn').addEventListener('click', ()=>{
-      if (spinning) return;
-      if (!items.length) return showMessage('請先新增參與者！');
-      const count=items.length;
-      const targetIdx = Math.floor(Math.random()*count);
-      if (count===1) {
-        modalResultText.textContent = items[0];
-        return resultModal.classList.add('show');
-      }
-      const segDeg=360/count, pointerDeg=90;
-      const fullSpins=15;
-      const landingDeg = fullSpins*360 + (pointerDeg - (targetIdx*segDeg + segDeg/2));
-      const totalRad = landingDeg * Math.PI/180;
-      const DURATION=3500, startTime=performance.now();
-      spinning=true; pointer.classList.add('shaking');
-      (function animate(now){
-        const elapsed = now - startTime;
-        const t = Math.min(elapsed/DURATION,1);
-        currentRotation = totalRad * (2*t - t*t);
-        drawWheel();
-        if (elapsed < DURATION) requestAnimationFrame(animate);
-        else {
-          currentRotation=totalRad; drawWheel();
-          setTimeout(()=>{      
-            modalResultText.textContent = items[targetIdx];
-            resultModal.classList.add('show');
-            pointer.classList.remove('shaking');
-            spinning=false;
-          },200);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>戳戳樂大冒險 - 兒童排系統</title>
+    <style>
+        :root {
+            /* 冒險色彩：馬卡龍色系 */
+            --color-blue: #E3F2FD;
+            --color-green: #E8F5E9;
+            --color-yellow: #FFF9C4;
+            --color-orange: #FFE0B2;
+            --color-purple: #F3E5F5;
+            
+            --bg-texture: #FDFBF7;
+            --text-main: #5D544C;
+            --text-light: #A8A096;
+            --white: #FFFFFF;
+            --accent: #FFAB91;
+            
+            /* 陰影設計 */
+            --shadow-paper: 0 6px 12px rgba(93, 84, 76, 0.12);
+            --shadow-sticker: 0 4px 0px rgba(0, 0, 0, 0.05);
+            --shadow-lift: 0 15px 40px rgba(93, 84, 76, 0.25);
+            --transition: all 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-      })(startTime);
-    });
 
-    // 關閉彈窗
-    modalCloseBtn.addEventListener('click', ()=> resultModal.classList.remove('show'));
-    resultModal.addEventListener('click', e=> e.target===resultModal && resultModal.classList.remove('show'));
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: "PingFang TC", "Microsoft JhengHei", "Rounded Mplus 1c", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
 
-    // 初始化與自適應
-    window.addEventListener('load', ()=>{ resizeCanvas(); renderItems(); });
-    window.addEventListener('resize', resizeCanvas);
-    function resizeCanvas() {
-      const w = wheelCanvas.parentElement.clientWidth;
-      wheelCanvas.width = wheelCanvas.height = w;
-      radius = w/2 - 10; cx = cy = w/2;
-      drawWheel();
-    }
-  </script>
+        body {
+            background-color: var(--bg-texture);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            /* 冒險地圖感紋理背景 */
+            background-image: 
+                radial-gradient(circle at 10% 10%, rgba(167, 199, 231, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 90%, rgba(255, 209, 220, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 50% 50%, #E8E1D9 1.5px, transparent 1.5px);
+            background-size: 100% 100%, 100% 100%, 40px 40px;
+        }
+
+        /* 標題區域 */
+        header {
+            padding: 25px 20px 5px;
+            text-align: center;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        h1 {
+            font-size: 3.2rem;
+            color: #7D6E5D;
+            letter-spacing: 6px;
+            cursor: pointer;
+            user-select: none;
+            text-shadow: 3px 3px 0px rgba(255,255,255,0.9);
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.08));
+        }
+
+        /* 管理按鈕 */
+        .btn-settings-trigger {
+            position: absolute;
+            right: 30px;
+            top: 30px;
+            background: rgba(255,255,255,0.6);
+            border: 2px solid white;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            font-size: 1.3rem;
+            color: var(--text-light);
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.3s, transform 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .btn-settings-trigger:hover { opacity: 1; transform: rotate(45deg); }
+
+        /* 格子牆視圖 (8x5) */
+        .grid-container {
+            flex-grow: 1;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 15px;
+            padding: 10px 40px 40px;
+            max-width: 1500px;
+            margin: 0 auto;
+            width: 100%;
+            transition: var(--transition);
+        }
+
+        body.task-active .grid-container {
+            filter: grayscale(0.4) blur(1px) brightness(0.9);
+            transform: scale(0.96);
+            pointer-events: none;
+        }
+
+        /* 動畫：搖擺與跳動 */
+        @keyframes character-bounce {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-5px) scale(1.05); }
+        }
+
+        @keyframes card-wave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-1.5deg); }
+            75% { transform: rotate(1.5deg); }
+        }
+
+        /* 格子卡片 */
+        .poke-item {
+            background: var(--white);
+            border-radius: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: var(--shadow-paper);
+            cursor: pointer;
+            transition: var(--transition);
+            border: 5px solid var(--white);
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+
+        .poke-item:hover {
+            z-index: 10;
+            box-shadow: var(--shadow-lift);
+            animation: card-wave 0.8s ease-in-out infinite;
+        }
+
+        /* 循環背景配色 */
+        .c-1 { background-color: var(--color-blue); }
+        .c-2 { background-color: var(--color-green); }
+        .c-3 { background-color: var(--color-yellow); }
+        .c-4 { background-color: var(--color-orange); }
+        .c-5 { background-color: var(--color-purple); }
+
+        .poke-item.completed {
+            background-color: #ECEAE7 !important;
+            cursor: default;
+            transform: none !important;
+            box-shadow: inset 0 3px 6px rgba(0,0,0,0.05);
+            animation: none !important;
+        }
+
+        /* 號碼貼紙 */
+        .number-sticker {
+            background: white;
+            width: 54px;
+            height: 54px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: 900;
+            color: #7D6E5D;
+            box-shadow: var(--shadow-sticker);
+            border: 4px solid white;
+            z-index: 5;
+            position: relative;
+            transform: rotate(-4deg);
+            margin-top: -15px;
+        }
+
+        .poke-item.completed .number-sticker {
+            background: #D8D4D0;
+            color: #A8A096;
+            box-shadow: none;
+            text-decoration: line-through;
+        }
+
+        /* 角色插圖 */
+        .char-icon {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 65%;
+            height: 65%;
+            opacity: 0.6;
+            z-index: 2;
+            transition: var(--transition);
+        }
+
+        .poke-item:hover .char-icon {
+            animation: character-bounce 0.6s infinite;
+            opacity: 0.9;
+        }
+
+        .poke-item.completed .char-icon {
+            opacity: 0.15;
+            filter: grayscale(1);
+        }
+
+        /* 任務視窗 */
+        .view {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+        }
+
+        .view.active { opacity: 1; pointer-events: auto; }
+
+        #task-view { background: rgba(253, 251, 247, 0.92); }
+
+        .card-task {
+            background: white;
+            padding: 60px;
+            border-radius: 40px;
+            box-shadow: 0 40px 100px rgba(93, 84, 76, 0.25);
+            max-width: 900px;
+            width: 100%;
+            border: 12px solid rgba(255,255,255,0.8);
+            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.25);
+            position: relative;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0.7) translateY(50px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .task-pre-title {
+            font-size: 1.6rem;
+            color: var(--text-light);
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+
+        .task-content {
+            font-size: 4.2rem;
+            font-weight: 900;
+            margin-bottom: 40px;
+            line-height: 1.25;
+            color: #4A443F;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.02);
+        }
+
+        .task-guide {
+            font-size: 1.8rem;
+            color: #8D8276;
+            margin-bottom: 60px;
+            background: #F9F7F5;
+            padding: 25px 45px;
+            border-radius: 25px;
+            display: inline-block;
+            border-left: 8px solid var(--color-green);
+        }
+
+        /* 按鈕風格 */
+        .button-group { display: flex; gap: 25px; justify-content: center; }
+
+        .btn {
+            padding: 24px 80px;
+            font-size: 2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 80px;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+        }
+
+        .btn-primary {
+            background: linear-gradient(to bottom, #C1E1C1, #9BC49B);
+            color: white;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary:hover {
+            transform: scale(1.1) translateY(-5px);
+            box-shadow: 0 20px 45px rgba(155, 196, 155, 0.5);
+        }
+
+        .btn-secondary {
+            background: #F3F0EC;
+            color: #9C948C;
+            font-size: 1.5rem;
+            padding: 20px 50px;
+        }
+
+        .btn-secondary:hover { background: #EAE5E0; }
+
+        /* 完成標記 */
+        .check-mark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4.5rem;
+            color: rgba(93, 84, 76, 0.25);
+            z-index: 0;
+            font-weight: 900;
+        }
+
+        /* 管理模式視圖 */
+        .admin-view { background: #fff; padding: 40px; overflow-y: auto; text-align: left; display: block; }
+
+        .svg-lib { display: none; }
+
+        /* 音效開關按鈕樣式 */
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            cursor: pointer;
+        }
+
+        .toggle-input { display: none; }
+        .toggle-slider {
+            width: 45px;
+            height: 25px;
+            background: #ccc;
+            border-radius: 20px;
+            position: relative;
+            transition: 0.3s;
+        }
+        .toggle-input:checked + .toggle-slider { background: var(--color-green); }
+        .toggle-slider:before {
+            content: '';
+            position: absolute;
+            width: 19px;
+            height: 19px;
+            background: white;
+            border-radius: 50%;
+            top: 3px;
+            left: 3px;
+            transition: 0.3s;
+        }
+        .toggle-input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        @media (max-width: 1200px) {
+            .grid-container {
+                grid-template-columns: repeat(5, 1fr);
+                grid-template-rows: repeat(8, 1fr);
+                padding: 10px 20px;
+            }
+            .task-content { font-size: 3rem; }
+            .button-group { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- SVG 角色插圖庫 (冒險夥伴) -->
+    <svg class="svg-lib">
+        <!-- 小羊夥伴 -->
+        <symbol id="char-lamb-awake" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="#F4F2EF" />
+            <circle cx="35" cy="45" r="5" fill="#5D544C" /> <!-- 眼睛 -->
+            <circle cx="65" cy="45" r="5" fill="#5D544C" />
+            <path d="M42 62 Q50 70 58 62" fill="none" stroke="#5D544C" stroke-width="4" stroke-linecap="round" /> <!-- 嘴巴 -->
+            <ellipse cx="15" cy="40" rx="10" ry="14" fill="#F4F2EF" /> <!-- 耳朵 -->
+            <ellipse cx="85" cy="40" rx="10" ry="14" fill="#F4F2EF" />
+            <circle cx="50" cy="20" r="15" fill="#FFFFFF" /> <!-- 頭頂毛 -->
+        </symbol>
+        <symbol id="char-lamb-sleep" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="#E0DED9" />
+            <path d="M30 45 Q35 50 40 45" fill="none" stroke="#A8A096" stroke-width="4" stroke-linecap="round" /> <!-- 睡眼 -->
+            <path d="M60 45 Q65 50 70 45" fill="none" stroke="#A8A096" stroke-width="4" stroke-linecap="round" />
+            <path d="M45 65 Q50 68 55 65" fill="none" stroke="#A8A096" stroke-width="3" />
+        </symbol>
+        
+        <!-- 小星星夥伴 -->
+        <symbol id="char-star-awake" viewBox="0 0 100 100">
+            <path d="M50 8 L63 38 L95 38 L70 58 L80 88 L50 72 L20 88 L30 58 L5 38 L37 38 Z" fill="#FFF9C4" />
+            <circle cx="42" cy="48" r="3.5" fill="#5D544C" />
+            <circle cx="58" cy="48" r="3.5" fill="#5D544C" />
+            <path d="M44 62 Q50 68 56 62" fill="none" stroke="#5D544C" stroke-width="3" stroke-linecap="round" />
+        </symbol>
+        <symbol id="char-star-sleep" viewBox="0 0 100 100">
+            <path d="M50 8 L63 38 L95 38 L70 58 L80 88 L50 72 L20 88 L30 58 L5 38 L37 38 Z" fill="#E8E4E0" />
+            <path d="M38 48 Q42 52 46 48" fill="none" stroke="#A8A096" stroke-width="3" />
+            <path d="M54 48 Q58 52 62 48" fill="none" stroke="#A8A096" stroke-width="3" />
+        </symbol>
+        
+        <!-- 愛心夥伴 -->
+        <symbol id="char-heart-awake" viewBox="0 0 100 100">
+            <path d="M50 88 L43 81 C25 65 15 53 15 38 C15 25 25 15 38 15 C45 15 52 18 56 25 C60 18 67 15 74 15 C87 15 97 25 97 38 C97 53 87 65 69 81 Z" fill="#FFD1DC" />
+            <circle cx="45" cy="40" r="4" fill="#5D544C" />
+            <circle cx="67" cy="40" r="4" fill="#5D544C" />
+            <path d="M50 55 Q56 62 62 55" fill="none" stroke="#5D544C" stroke-width="3" stroke-linecap="round" />
+        </symbol>
+        <symbol id="char-heart-sleep" viewBox="0 0 100 100">
+            <path d="M50 88 L43 81 C25 65 15 53 15 38 C15 25 25 15 38 15 C45 15 52 18 56 25 C60 18 67 15 74 15 C87 15 97 25 97 38 C97 53 87 65 69 81 Z" fill="#EAE8E5" />
+            <path d="M40 40 Q45 45 50 40" fill="none" stroke="#A8A096" stroke-width="3" />
+            <path d="M62 40 Q67 45 72 40" fill="none" stroke="#A8A096" stroke-width="3" />
+        </symbol>
+
+        <!-- 雲朵夥伴 -->
+        <symbol id="char-cloud-awake" viewBox="0 0 100 100">
+            <path d="M25 60 C10 60 10 40 25 40 C25 20 45 20 50 35 C55 20 75 20 75 40 C90 40 90 60 75 60 Z" fill="#E3F2FD" />
+            <circle cx="42" cy="45" r="3" fill="#5D544C" />
+            <circle cx="58" cy="45" r="3" fill="#5D544C" />
+            <path d="M46 52 Q50 56 54 52" fill="none" stroke="#5D544C" stroke-width="2" />
+        </symbol>
+        <symbol id="char-cloud-sleep" viewBox="0 0 100 100">
+            <path d="M25 60 C10 60 10 40 25 40 C25 20 45 20 50 35 C55 20 75 20 75 40 C90 40 90 60 75 60 Z" fill="#DCE1E6" />
+            <path d="M38 45 Q42 48 46 45" fill="none" stroke="#A8A096" stroke-width="2" />
+            <path d="M54 45 Q58 48 62 45" fill="none" stroke="#A8A096" stroke-width="2" />
+        </symbol>
+    </svg>
+
+    <header>
+        <h1 id="app-title" title="長按進入設定">〈戳戳樂大冒險〉</h1>
+        <button class="btn-settings-trigger" onclick="requestAdminAccess()" title="進入設定中心">⚙️</button>
+    </header>
+
+    <!-- 主遊戲牆 -->
+    <div id="grid-wall" class="grid-container">
+        <!-- JS 將自動填滿 40 個冒險格子 -->
+    </div>
+
+    <!-- 任務揭曉視窗 -->
+    <div id="task-view" class="view">
+        <div class="card-task">
+            <div class="task-pre-title">✨ 勇敢的冒險者，這是你的小任務 ✨</div>
+            <div id="current-task-text" class="task-content">尋找任務中...</div>
+            <div id="current-task-guide" class="task-guide">老師會和你一起完成這個挑戰喔！</div>
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="cancelTask()">點錯格了，返回</button>
+                <button class="btn btn-primary" id="finish-task-btn" onclick="finishTask()">我完成任務了 ✓</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 達成獎勵視窗 -->
+    <div id="enc-view" class="view">
+        <div class="card-task" style="border-color: #F3E5F5;">
+            <div id="enc-text" class="task-content" style="color: #7D6E5D; font-size: 3.2rem;">主很喜悅你的操練 ❤️</div>
+            <div style="margin-top: 30px; font-size: 1.5rem; color: #A8A096;">[ 任務達成！正在回到冒險牆 ]</div>
+        </div>
+    </div>
+
+    <!-- 管理後台 -->
+    <div id="admin-view" class="view admin-view">
+        <div style="max-width: 900px; width: 100%; margin: 0 auto; background: white; padding: 40px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+                <h2 style="color: #5D544C;">冒險任務控制台</h2>
+                <button onclick="closeAdmin()" style="padding: 12px 25px; border-radius: 15px; border: none; background: #f0f0f0; cursor: pointer; font-weight: bold;">返回遊戲</button>
+            </div>
+
+            <div class="admin-section" style="margin-bottom: 25px;">
+                <h3 style="margin-bottom: 10px;">🔊 系統音效</h3>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="audio-toggle" class="toggle-input" onchange="toggleAudio(this.checked)">
+                    <div class="toggle-slider"></div>
+                    <span id="audio-status-text">音效已開啟</span>
+                </label>
+            </div>
+
+            <div style="background: #FDFBF7; padding: 25px; border-radius: 20px; margin-bottom: 30px; border: 2px dashed #E8E1D9;">
+                <h3 style="margin-bottom: 15px;">📜 新增任務卡</h3>
+                <input type="text" id="new-task-title" placeholder="主要任務內容 (大字)" style="width: 100%; padding: 15px; margin-bottom: 12px; border-radius: 12px; border: 1px solid #ddd; font-size: 1.1rem;">
+                <input type="text" id="new-task-guide" placeholder="老師引導說明 (小字)" style="width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 12px; border: 1px solid #ddd; font-size: 1.1rem;">
+                <button onclick="addAdminTask()" style="padding: 12px 35px; background: #A7C7E7; color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: bold;">增加到任務庫</button>
+            </div>
+
+            <h3 style="margin-bottom: 15px;">📋 任務總表 (<span id="task-count-display">0</span>)</h3>
+            <div id="admin-task-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #eee; padding: 10px; border-radius: 15px; background: #fafafa;"></div>
+
+            <div style="margin-top: 40px; display: flex; gap: 20px;">
+                <button onclick="resetAllGrids()" style="padding: 15px 30px; background: #FFAB91; color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold;">重置地圖進度</button>
+                <button onclick="resetConfig()" style="padding: 15px 30px; background: #A8A096; color: white; border: none; border-radius: 15px; cursor: pointer; font-weight: bold;">恢復原廠設定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 音效合成引擎 (Web Audio API) ---
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!state.audioEnabled || !audioCtx) return;
+            
+            // 確保 Context 處於運行狀態 (處理瀏覽器自動播放限制)
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+
+            const masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(0.2, audioCtx.currentTime); // 固定在 20% 音量
+            masterGain.connect(audioCtx.destination);
+
+            switch(type) {
+                case 'tap': // 輕質木頭敲擊聲
+                    const oscTap = audioCtx.createOscillator();
+                    const gainTap = audioCtx.createGain();
+                    oscTap.type = 'sine';
+                    oscTap.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    oscTap.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
+                    gainTap.gain.setValueAtTime(0.5, audioCtx.currentTime);
+                    gainTap.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                    oscTap.connect(gainTap);
+                    gainTap.connect(masterGain);
+                    oscTap.start();
+                    oscTap.stop(audioCtx.currentTime + 0.1);
+                    break;
+
+                case 'shimmer': // 星星閃爍音 (和諧雙音)
+                    [880, 1320].forEach((freq, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (i * 0.05));
+                        gain.gain.setValueAtTime(0, audioCtx.currentTime + (i * 0.05));
+                        gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + (i * 0.05) + 0.05);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                        osc.connect(gain);
+                        gain.connect(masterGain);
+                        osc.start(audioCtx.currentTime + (i * 0.05));
+                        osc.stop(audioCtx.currentTime + 0.6);
+                    });
+                    break;
+
+                case 'success': // 低調大調音階 (C, E, G)
+                    [523.25, 659.25, 783.99].forEach((freq, i) => {
+                        const osc = audioCtx.createOscillator();
+                        const gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (i * 0.15));
+                        gain.gain.setValueAtTime(0, audioCtx.currentTime + (i * 0.15));
+                        gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + (i * 0.15) + 0.05);
+                        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.15) + 0.4);
+                        osc.connect(gain);
+                        gain.connect(masterGain);
+                        osc.start(audioCtx.currentTime + (i * 0.15));
+                        osc.stop(audioCtx.currentTime + (i * 0.15) + 0.5);
+                    });
+                    break;
+            }
+        }
+
+        // --- 冒險地圖資料 ---
+        const initialTasks = [
+            { id: "t1", content: "大聲說一次「主耶穌我愛你」", guide: "老師可以帶領大家一起回應他喔" },
+            { id: "t2", content: "找一位小朋友擊掌 High-five", guide: "把喜樂分享給身邊的朋友" },
+            { id: "t3", content: "露出一個最大、最棒的笑容", guide: "喜樂的心乃是良藥" },
+            { id: "t4", content: "學小羊咩咩叫 3 聲", guide: "我們都是主所愛護的小羊" },
+            { id: "t5", content: "大聲宣佈：我是神的好孩子", guide: "讓大家看見神家小精兵的精神" },
+            { id: "t6", content: "找一位小朋友握握手", guide: "對他說：願主耶穌祝福你" },
+            { id: "t7", content: "給老師一個帥氣的擊掌", guide: "肯定孩子的勇氣與操練" },
+            { id: "t8", content: "閉上眼睛安靜心靈 10 秒鐘", guide: "老師倒數，一起感受主的平安" },
+            { id: "t9", content: "哼唱一句你最喜歡的詩歌", guide: "老師可以先幫孩子起個頭" },
+            { id: "t10", content: "背誦：神就是愛", guide: "約翰一書四章 8 節" },
+            { id: "t11", content: "說出一件感謝主的事情", guide: "培育凡事謝恩的好品格" },
+            { id: "t12", content: "對旁邊朋友說「主愛你」", guide: "在主裡彼此相愛" },
+            { id: "t13", content: "幫忙把大家的椅子排整齊", guide: "操練成為神家忠信的小管家" },
+            { id: "t14", content: "大聲呼求：喔，主耶穌！", guide: "最簡單也最有能力的生命操練" },
+            { id: "t15", content: "做出一個強壯的精兵動作", guide: "在基督裡剛強壯膽" }
+        ];
+
+        const initialEncs = [
+            "阿們！主很喜悅你 ❤️",
+            "做得太棒了，你很寶貴！",
+            "主耶穌看見你的操練了，加油！",
+            "你是最勇敢的小精兵！",
+            "哈利路亞！主永遠與你同在。",
+            "你帶給大家許多喜樂與鼓勵！",
+            "主愛你，我們大家也都愛你！"
+        ];
+
+        let state = {
+            tasks: [],
+            encouragements: [],
+            gridProgress: {},
+            sessionShownTaskIds: [], 
+            audioEnabled: true,
+            pin: "1234"
+        };
+
+        let currentActiveIndex = -1;
+        const iconTypes = ['lamb', 'star', 'heart', 'cloud'];
+
+        // --- 核心邏輯 ---
+        function init() {
+            const savedState = localStorage.getItem('poke_fun_adventure_v5');
+            if (savedState) {
+                state = JSON.parse(savedState);
+                if(!state.sessionShownTaskIds) state.sessionShownTaskIds = [];
+                if(state.audioEnabled === undefined) state.audioEnabled = true;
+            } else {
+                state.tasks = JSON.parse(JSON.stringify(initialTasks));
+                state.encouragements = initialEncs;
+                for(let i=1; i<=40; i++) state.gridProgress[i] = false;
+                state.sessionShownTaskIds = [];
+                state.audioEnabled = true;
+                saveState();
+            }
+            
+            // 更新音效開關 UI
+            const audioToggle = document.getElementById('audio-toggle');
+            if(audioToggle) {
+                audioToggle.checked = state.audioEnabled;
+                document.getElementById('audio-status-text').innerText = state.audioEnabled ? "音效已開啟" : "音效已關閉";
+            }
+
+            renderGrid();
+            initAdminEntry();
+        }
+
+        function saveState() {
+            localStorage.setItem('poke_fun_adventure_v5', JSON.stringify(state));
+        }
+
+        function toggleAudio(enabled) {
+            initAudio(); // 確保使用者互動後初始化
+            state.audioEnabled = enabled;
+            document.getElementById('audio-status-text').innerText = enabled ? "音效已開啟" : "音效已關閉";
+            saveState();
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('grid-wall');
+            container.innerHTML = '';
+            
+            for (let i = 1; i <= 40; i++) {
+                const item = document.createElement('div');
+                const isCompleted = state.gridProgress[i];
+                
+                const colorIdx = ((i - 1) % 5) + 1;
+                const charType = iconTypes[(i - 1) % iconTypes.length];
+                const charState = isCompleted ? 'sleep' : 'awake';
+                
+                item.className = `poke-item c-${colorIdx} ${isCompleted ? 'completed' : ''}`;
+                const numStr = i < 10 ? '0' + i : i;
+
+                item.innerHTML = `
+                    <div class="number-sticker">${numStr}</div>
+                    <svg class="char-icon"><use xlink:href="#char-${charType}-${charState}"></use></svg>
+                    ${isCompleted ? '<div class="check-mark">✓</div>' : ''}
+                `;
+                
+                item.onclick = () => handleGridClick(i, item);
+                container.appendChild(item);
+            }
+        }
+
+        function handleGridClick(index, element) {
+            if (state.gridProgress[index]) return;
+            
+            initAudio(); // 初始化或恢復 AudioContext
+            playSound('tap');
+
+            document.body.classList.add('task-active');
+            element.style.transform = "scale(1.3) translateY(-30px)";
+            element.style.boxShadow = "var(--shadow-lift)";
+            element.style.zIndex = "200";
+
+            setTimeout(() => {
+                currentActiveIndex = index;
+                
+                let availableTasks = state.tasks.filter(t => !state.sessionShownTaskIds.includes(t.id));
+                if (availableTasks.length === 0) {
+                    state.sessionShownTaskIds = [];
+                    availableTasks = state.tasks;
+                }
+                
+                const randomIndex = Math.floor(Math.random() * availableTasks.length);
+                const selectedTask = availableTasks[randomIndex];
+                
+                state.sessionShownTaskIds.push(selectedTask.id);
+                saveState();
+
+                document.getElementById('current-task-text').innerText = selectedTask.content;
+                document.getElementById('current-task-guide').innerText = selectedTask.guide || "老師會陪著你一起操練喔！";
+                
+                showView('task-view');
+                playSound('shimmer');
+            }, 400);
+        }
+
+        function finishTask() {
+            playSound('success');
+            const randomEnc = state.encouragements[Math.floor(Math.random() * state.encouragements.length)];
+            document.getElementById('enc-text').innerText = randomEnc;
+            
+            showView('enc-view');
+            state.gridProgress[currentActiveIndex] = true;
+            saveState();
+
+            setTimeout(() => {
+                document.body.classList.remove('task-active');
+                showView('grid-wall');
+                renderGrid();
+            }, 2500);
+        }
+
+        function cancelTask() {
+            state.sessionShownTaskIds.pop();
+            saveState();
+
+            document.body.classList.remove('task-active');
+            showView('grid-wall');
+            renderGrid();
+            currentActiveIndex = -1;
+        }
+
+        function showView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            if (viewId !== 'grid-wall') {
+                document.getElementById(viewId).classList.add('active');
+            }
+        }
+
+        // --- 管理後台 ---
+        function requestAdminAccess() {
+            const pass = prompt("請輸入管理者 PIN 碼：");
+            if (pass === state.pin) {
+                openAdmin();
+            } else if (pass !== null) {
+                alert("密碼不正確喔！");
+            }
+        }
+
+        function initAdminEntry() {
+            let timer;
+            const title = document.getElementById('app-title');
+            const handleStart = () => { timer = setTimeout(() => { requestAdminAccess(); }, 2000)};
+            const handleEnd = () => clearTimeout(timer);
+            title.addEventListener('mousedown', handleStart);
+            title.addEventListener('mouseup', handleEnd);
+            title.addEventListener('touchstart', handleStart);
+            title.addEventListener('touchend', handleEnd);
+        }
+
+        function openAdmin() {
+            const list = document.getElementById('admin-task-list');
+            list.innerHTML = '';
+            document.getElementById('task-count-display').innerText = state.tasks.length;
+            state.tasks.forEach((t, idx) => {
+                const div = document.createElement('div');
+                div.style.padding = "15px";
+                div.style.borderBottom = "1px solid #f0f0f0";
+                div.style.display = "flex";
+                div.style.justifyContent = "space-between";
+                div.style.alignItems = "center";
+                div.innerHTML = `
+                    <div style="flex-grow: 1;">
+                        <div style="font-weight:bold; font-size:1.1rem;">${t.content}</div>
+                        <div style="font-size:0.9rem; color:#888;">${t.guide}</div>
+                    </div>
+                    <button onclick="deleteAdminTask(${idx})" style="color:#FF6B6B; border:1.5px solid #FF6B6B; background:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-weight:bold;">刪除</button>
+                `;
+                list.appendChild(div);
+            });
+            showView('admin-view');
+        }
+
+        function addAdminTask() {
+            const content = document.getElementById('new-task-title').value.trim();
+            const guide = document.getElementById('new-task-guide').value.trim();
+            if (!content) return alert("請填寫任務大字內容");
+            state.tasks.push({ id: "adv-" + Date.now(), content, guide });
+            saveState();
+            openAdmin();
+            document.getElementById('new-task-title').value = '';
+            document.getElementById('new-task-guide').value = '';
+        }
+
+        function deleteAdminTask(idx) {
+            if(confirm("確定要刪除這張冒險卡嗎？")) {
+                state.tasks.splice(idx, 1);
+                saveState();
+                openAdmin();
+            }
+        }
+
+        function closeAdmin() { showView('grid-wall'); renderGrid(); }
+
+        function resetAllGrids() {
+            if(confirm("確定要重置所有紀錄嗎？（這會讓冒險重新開始）")) {
+                for(let i=1; i<=40; i++) state.gridProgress[i] = false;
+                state.sessionShownTaskIds = [];
+                saveState();
+                location.reload();
+            }
+        }
+
+        function resetConfig() {
+            if(confirm("確定還原原廠設定嗎？（自訂任務會被清除）")) {
+                localStorage.removeItem('poke_fun_adventure_v5');
+                location.reload();
+            }
+        }
+
+        init();
+    </script>
 </body>
 </html>
