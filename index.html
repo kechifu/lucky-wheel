@@ -51,7 +51,7 @@
 
         /* 標題區域 */
         header {
-            padding: 15px 10px 10px;
+            padding: 20px 10px 10px;
             text-align: center;
             flex-shrink: 0;
             position: relative;
@@ -90,7 +90,7 @@
         .grid-container {
             flex-grow: 1;
             display: grid;
-            grid-template-columns: repeat(8, 1fr);
+            /* 這裡由 JS 動態控制 grid-template-columns */
             gap: clamp(6px, 1.5vw, 12px);
             padding: 5px clamp(10px, 3vw, 30px) 40px;
             max-width: 1400px;
@@ -98,12 +98,13 @@
             width: 100%;
         }
 
+        /* 手機版強制調整為較少欄數 */
         @media (max-width: 768px) {
-            .grid-container { grid-template-columns: repeat(4, 1fr); }
+            .grid-container { grid-template-columns: repeat(4, 1fr) !important; }
         }
 
         @media (max-width: 480px) {
-            .grid-container { grid-template-columns: repeat(3, 1fr); }
+            .grid-container { grid-template-columns: repeat(3, 1fr) !important; }
         }
 
         body.task-active { overflow: hidden; }
@@ -174,7 +175,7 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            padding: 15px;
+            padding: 20px;
             text-align: center;
             opacity: 0;
             pointer-events: none;
@@ -189,7 +190,7 @@
 
         .card-task {
             background: white;
-            padding: clamp(20px, 6vw, 50px);
+            padding: clamp(25px, 8vw, 60px);
             border-radius: 30px;
             box-shadow: 0 15px 50px rgba(93, 84, 76, 0.15);
             max-width: 90%;
@@ -243,6 +244,9 @@
             transition: 0.2s;
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             min-width: 110px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-primary { background: linear-gradient(to bottom, #C1E1C1, #9BC49B); color: white; }
@@ -279,7 +283,6 @@
             gap: 12px; 
         }
 
-        /* 修正後的底部按鈕 */
         .btn-save-sm { font-size: 1rem; padding: 10px 25px; width: auto; min-width: 200px; }
 
         .check-mark {
@@ -292,7 +295,9 @@
         }
 
         .svg-lib { display: none; }
-        textarea, input[type="text"] { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 0.95rem; }
+        textarea, input[type="text"], input[type="number"] { 
+            width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ddd; border-radius: 10px; font-size: 0.95rem; 
+        }
         
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #f9f9f9; font-size: 0.9rem; }
     </style>
@@ -312,7 +317,7 @@
     </svg>
 
     <header>
-        <h1 id="app-title">〈戳戳樂大冒險〉</h1>
+        <h1 id="app-title" title="長按進入設定">〈戳戳樂大冒險〉</h1>
         <button class="btn-settings-trigger" onclick="requestAdminAccess()">⚙️</button>
     </header>
 
@@ -331,7 +336,7 @@
         </div>
     </div>
 
-    <!-- 鼓勵語專用視窗 (徹底修復點) -->
+    <!-- 鼓勵語視窗 -->
     <div id="enc-view" class="view hidden">
         <div class="card-task" style="border-color: #F3E5F5; overflow: hidden;">
             <div id="enc-text" class="task-content">做得太棒了！ ❤️</div>
@@ -347,11 +352,29 @@
                 <button onclick="closeAdmin()" class="btn btn-secondary" style="min-width: auto; padding: 5px 15px;">關閉</button>
             </div>
 
+            <!-- 音效設定 -->
             <label class="toggle-switch">
                 <input type="checkbox" id="audio-toggle" class="toggle-input" onchange="toggleAudio(this.checked)">
                 <div class="toggle-slider"></div>
                 <span id="audio-status-text" style="font-size: 0.9rem;">音效已開啟</span>
             </label>
+
+            <!-- 地圖規格設定 -->
+            <div class="admin-section-box">
+                <h3>🗺️ 地圖規格設定</h3>
+                <div style="display: flex; gap: 15px; margin-top: 10px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.85rem; color: #666;">橫向列數 (欄)</label>
+                        <input type="number" id="admin-grid-cols" min="1" max="12">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 0.85rem; color: #666;">縱向行數 (列)</label>
+                        <input type="number" id="admin-grid-rows" min="1" max="20">
+                    </div>
+                </div>
+                <p style="font-size: 0.75rem; color: #FF8A80; margin-bottom: 10px;">※ 修改規格將會重置目前地圖的完成紀錄。</p>
+                <button onclick="saveGridConfig()" class="btn btn-primary" style="width: 100%; padding: 8px;">應用並更新地圖</button>
+            </div>
 
             <div class="admin-section-box">
                 <h3>📜 新增任務卡</h3>
@@ -402,36 +425,67 @@
             { id: "t3", content: "露出一個最大、最棒的笑容", guide: "喜樂的心乃是良藥" },
             { id: "t4", content: "學小羊咩咩叫 3 聲", guide: "我們都是主所愛護的小羊" },
             { id: "t5", content: "大聲宣佈：我是神的好孩子", guide: "展現神家小精兵的精神" },
-            { id: "t14", content: "大聲呼求：喔，主耶穌！", guide: "最簡單也最有能力的生命操練" }
+            { id: "t14", content: "大聲呼求：喔，主耶穌！", guide: "生命操練最有能力" }
         ];
         const initialEncs = [ "做得太棒了！ ❤️", "你真的很寶貴，加油！", "真棒的操練！", "你是最勇敢的小精兵！", "大家都很為你開心！" ];
 
-        let state = { tasks: [], encouragements: [], gridProgress: {}, sessionShownTaskIds: [], audioEnabled: true, pin: "1234" };
+        // 修改後的 state，包含 gridCols 和 gridRows
+        let state = { 
+            tasks: [], 
+            encouragements: [], 
+            gridProgress: {}, 
+            sessionShownTaskIds: [], 
+            audioEnabled: true, 
+            pin: "1234",
+            gridCols: 8,
+            gridRows: 5
+        };
+
         let currentActiveIndex = -1;
         const iconTypes = ['lamb', 'star', 'heart', 'cloud'];
 
         function init() {
-            const savedState = localStorage.getItem('poke_fun_adventure_v7');
+            const savedState = localStorage.getItem('poke_fun_adventure_v8');
             if (savedState) {
                 state = JSON.parse(savedState);
                 if(!state.sessionShownTaskIds) state.sessionShownTaskIds = [];
                 if(!state.encouragements || state.encouragements.length === 0) state.encouragements = [...initialEncs];
+                if(!state.gridCols) state.gridCols = 8;
+                if(!state.gridRows) state.gridRows = 5;
             } else {
                 state.tasks = [...initialTasks]; state.encouragements = [...initialEncs];
-                for(let i=1; i<=40; i++) state.gridProgress[i] = false;
+                state.gridCols = 8; state.gridRows = 5;
+                resetGridProgress();
                 saveState();
             }
             const audioToggle = document.getElementById('audio-toggle');
             if(audioToggle) audioToggle.checked = state.audioEnabled;
+            
+            // 初始化管理介面數值
+            document.getElementById('admin-grid-cols').value = state.gridCols;
+            document.getElementById('admin-grid-rows').value = state.gridRows;
+            
             renderGrid(); initAdminEntry();
         }
 
-        function saveState() { localStorage.setItem('poke_fun_adventure_v7', JSON.stringify(state)); }
+        function resetGridProgress() {
+            state.gridProgress = {};
+            const total = state.gridCols * state.gridRows;
+            for(let i=1; i<=total; i++) state.gridProgress[i] = false;
+        }
+
+        function saveState() { localStorage.setItem('poke_fun_adventure_v8', JSON.stringify(state)); }
         function toggleAudio(e) { initAudio(); state.audioEnabled = e; saveState(); }
 
         function renderGrid() {
-            const container = document.getElementById('grid-wall'); container.innerHTML = '';
-            for (let i = 1; i <= 40; i++) {
+            const container = document.getElementById('grid-wall'); 
+            container.innerHTML = '';
+            
+            // 動態設置 CSS Grid
+            container.style.gridTemplateColumns = `repeat(${state.gridCols}, 1fr)`;
+            
+            const total = state.gridCols * state.gridRows;
+            for (let i = 1; i <= total; i++) {
                 const item = document.createElement('div');
                 const isComp = state.gridProgress[i];
                 const cIdx = ((i - 1) % 5) + 1;
@@ -461,14 +515,11 @@
             }, 300);
         }
 
-        // 徹底修復：確保顯示鼓勵語視窗
         function finishTask() {
             playSound('success');
-            // 立即從目前的 state 中隨機選取一句
             const list = (state.encouragements && state.encouragements.length > 0) ? state.encouragements : initialEncs;
             const msg = list[Math.floor(Math.random() * list.length)];
             
-            // 注入文字並顯示畫面
             document.getElementById('enc-text').innerText = msg;
             showView('enc-view'); 
             
@@ -504,8 +555,29 @@
                 list.appendChild(d);
             });
             document.getElementById('admin-enc-textarea').value = (state.encouragements || initialEncs).join('\n');
+            document.getElementById('admin-grid-cols').value = state.gridCols;
+            document.getElementById('admin-grid-rows').value = state.gridRows;
             document.getElementById('admin-view').classList.remove('hidden');
             showView('admin-view');
+        }
+
+        function saveGridConfig() {
+            const cols = parseInt(document.getElementById('admin-grid-cols').value);
+            const rows = parseInt(document.getElementById('admin-grid-rows').value);
+            
+            if (isNaN(cols) || isNaN(rows) || cols < 1 || rows < 1) {
+                alert("請輸入有效的格數數值。");
+                return;
+            }
+
+            if (confirm("修改規格將會重置目前地圖進度，確定要繼續嗎？")) {
+                state.gridCols = cols;
+                state.gridRows = rows;
+                resetGridProgress();
+                saveState();
+                renderGrid();
+                alert("規格更新成功！");
+            }
         }
 
         function addAdminTask() {
@@ -520,13 +592,12 @@
             state.encouragements = val.split('\n').filter(s => s.trim() !== "");
             saveState();
             alert("已儲存鼓勵語！");
-            closeAdmin();
         }
 
         function delTask(i) { if(confirm("刪除？")) { state.tasks.splice(i, 1); saveState(); openAdmin(); } }
         function closeAdmin() { document.getElementById('admin-view').classList.add('hidden'); showView('grid-wall'); renderGrid(); }
-        function resetAllGrids() { if(confirm("重置進度？")) { for(let i=1; i<=40; i++) state.gridProgress[i] = false; state.sessionShownTaskIds = []; saveState(); location.reload(); } }
-        function resetConfig() { if(confirm("還原原廠？")) { localStorage.removeItem('poke_fun_adventure_v7'); location.reload(); } }
+        function resetAllGrids() { if(confirm("重置進度？")) { resetGridProgress(); state.sessionShownTaskIds = []; saveState(); location.reload(); } }
+        function resetConfig() { if(confirm("還原原廠？")) { localStorage.removeItem('poke_fun_adventure_v8'); location.reload(); } }
         init();
     </script>
 </body>
