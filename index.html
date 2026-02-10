@@ -260,8 +260,9 @@
 
         .btn-primary { background: linear-gradient(to bottom, #C1E1C1, #9BC49B); color: white; }
         .btn-secondary { background: #F3F0EC; color: #9C948C; }
+        .btn-danger { background: #FFAB91; color: white; }
 
-        .admin-view { background: #fff; padding: 20px; overflow-y: auto; text-align: left; position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
+        .admin-view { background: #fff; padding: 20px; overflow-y: auto; text-align: left; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; }
         
         @media (max-width: 600px) {
             .btn { width: 100%; }
@@ -285,6 +286,8 @@
         .toggle-input:checked + .toggle-slider { background: var(--color-green); }
         .toggle-slider:before { content: ''; position: absolute; width: 19px; height: 19px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: 0.3s; }
         .toggle-input:checked + .toggle-slider:before { transform: translateX(20px); }
+
+        .admin-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #f0f0f0; display: flex; flex-direction: column; gap: 10px; }
     </style>
 </head>
 <body>
@@ -307,13 +310,13 @@
             <path d="M50 88 L43 81 C25 65 15 53 15 38 C15 25 25 15 38 15 C45 15 52 18 56 25 C60 18 67 15 74 15 C87 15 97 25 97 38 C97 53 87 65 69 81 Z" fill="#FFD1DC" /><circle cx="45" cy="40" r="4" fill="#5D544C" /><circle cx="67" cy="40" r="4" fill="#5D544C" />
         </symbol>
         <symbol id="char-heart-sleep" viewBox="0 0 100 100">
-            <path d="M50 88 L43 81 C25 65 15 53 15 38 C15 25 25 15 38 15 C45 15 52 18 56 25 C60 18 67 15 74 15 C87 15 97 25 97 38 C97 53 87 65 69 81 Z" fill="#EAE8E5" /><path d="M40 40 Q45 45 50 40" fill="none" stroke="#A8A096" stroke-width="3" />
+            <path d="M50 88 L43 81 C25 65 15 53 15 38 C15 25 25 15 38 15 C45 15 52 18 56 25 C60 18 67 15 74 15 C87 15 97 25 97 38 C97 53 87 65 69 81 Z" fill="#EAE8E5" /><path d="M40 40 Q45 45 50 40" fill="none" stroke="#A8A096" stroke-width="3" /><path d="M62 40 Q67 45 72 40" fill="none" stroke="#A8A096" stroke-width="3" />
         </symbol>
         <symbol id="char-cloud-awake" viewBox="0 0 100 100">
             <path d="M25 60 C10 60 10 40 25 40 C25 20 45 20 50 35 C55 20 75 20 75 40 C90 40 90 60 75 60 Z" fill="#E3F2FD" /><circle cx="42" cy="45" r="3" fill="#5D544C" /><circle cx="58" cy="45" r="3" fill="#5D544C" />
         </symbol>
         <symbol id="char-cloud-sleep" viewBox="0 0 100 100">
-            <path d="M25 60 C10 60 10 40 25 40 C25 20 45 20 50 35 C55 20 75 20 75 40 C90 40 90 60 75 60 Z" fill="#DCE1E6" /><path d="M38 45 Q42 48 46 45" fill="none" stroke="#A8A096" stroke-width="2" />
+            <path d="M25 60 C10 60 10 40 25 40 C25 20 45 20 50 35 C55 20 75 20 75 40 C90 40 90 60 75 60 Z" fill="#DCE1E6" /><path d="M38 45 Q42 48 46 45" fill="none" stroke="#A8A096" stroke-width="2" /><path d="M54 45 Q58 48 62 45" fill="none" stroke="#A8A096" stroke-width="2" />
         </symbol>
     </svg>
 
@@ -324,6 +327,7 @@
 
     <div id="grid-wall" class="grid-container"></div>
 
+    <!-- 任務揭曉視窗 -->
     <div id="task-view" class="view">
         <div class="card-task">
             <div class="task-pre-title">✨ 勇敢的冒險者，這是你的小任務 ✨</div>
@@ -336,6 +340,7 @@
         </div>
     </div>
 
+    <!-- 鼓勵語視窗 -->
     <div id="enc-view" class="view">
         <div class="card-task" style="border-color: #F3E5F5;">
             <div id="enc-text" class="task-content" style="color: #7D6E5D;">任務達成！ ❤️</div>
@@ -344,7 +349,7 @@
     </div>
 
     <!-- 管理者介面 -->
-    <div id="admin-view" class="view admin-view">
+    <div id="admin-view" class="view admin-view hidden">
         <div style="max-width: 900px; width: 100%; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2>冒險任務控制台</h2>
@@ -366,20 +371,22 @@
                 <button onclick="addAdminTask()" class="btn btn-primary" style="padding: 10px; font-size: 1rem; width: 100%;">增加到任務庫</button>
             </div>
 
-            <!-- 新增：鼓勵語編輯區 -->
             <div style="background: #FDFBF7; padding: 15px; border-radius: 15px; border: 2px dashed #E8E1D9; margin-top: 20px;">
                 <h3>💖 編輯鼓勵語 (每行一句)</h3>
                 <p style="font-size: 0.85rem; color: #888; margin-bottom: 10px;">完成任務後會隨機選取一句顯示給孩子。</p>
                 <textarea id="admin-enc-textarea" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; height: 120px; font-size: 1rem;"></textarea>
-                <button onclick="saveEncConfig()" class="btn btn-primary" style="padding: 10px; font-size: 1rem; width: 100%;">儲存鼓勵語</button>
+                <button onclick="saveEncConfig()" class="btn btn-primary" style="padding: 10px; font-size: 1rem; width: 100%;">儲存並返回地圖</button>
             </div>
 
             <h3 style="margin: 25px 0 10px;">📋 任務總表 (<span id="task-count-display">0</span>)</h3>
             <div id="admin-task-list" style="max-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; padding: 10px;"></div>
 
-            <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
-                <button onclick="resetAllGrids()" class="btn btn-secondary" style="background:#FFAB91; color:white; min-width: auto; font-size: 0.9rem;">重置地圖進度</button>
-                <button onclick="resetConfig()" class="btn btn-secondary" style="min-width: auto; font-size: 0.9rem;">恢復原廠設定</button>
+            <div class="admin-footer">
+                <button onclick="closeAdmin()" class="btn btn-primary" style="margin-bottom: 20px;">儲存完成並返回地圖</button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="resetAllGrids()" class="btn btn-danger" style="flex: 1; min-width: auto; font-size: 0.9rem;">重置地圖進度</button>
+                    <button onclick="resetConfig()" class="btn btn-secondary" style="flex: 1; min-width: auto; font-size: 0.9rem;">恢復原廠設定</button>
+                </div>
             </div>
         </div>
     </div>
@@ -421,11 +428,11 @@
         }
 
         const initialTasks = [
-            { id: "t1", content: "大聲說一次「主耶穌我愛你」", guide: "老師可以帶領大家一起回應他喔" },
+            { id: "t1", content: "大聲說一次「主耶穌我愛你」", guide: "可以邀請大家一起回應他喔" },
             { id: "t2", content: "找一位小朋友擊掌 High-five", guide: "把喜樂分享給身邊的朋友" },
             { id: "t3", content: "露出一個最大、最棒的笑容", guide: "喜樂的心乃是良藥" },
             { id: "t4", content: "學小羊咩咩叫 3 聲", guide: "我們都是主所愛護的小羊" },
-            { id: "t5", content: "大聲宣佈：我是神的好孩子", guide: "讓大家看見神家小精兵的精神" },
+            { id: "t5", content: "大聲宣佈：我是神的好孩子", guide: "展現神家小精兵的精神" },
             { id: "t6", content: "找一位小朋友握握手", guide: "對他說：願主耶穌祝福你" },
             { id: "t7", content: "給老師一個帥氣的擊掌", guide: "肯定孩子的勇氣與操練" },
             { id: "t8", content: "閉上眼睛安靜心靈 10 秒鐘", guide: "老師倒數，一起感受主的平安" },
@@ -434,17 +441,17 @@
             { id: "t11", content: "說出一件感謝主的事情", guide: "培育凡事謝恩的好品格" },
             { id: "t12", content: "對旁邊朋友說「主愛你」", guide: "在主裡彼此相愛" },
             { id: "t13", content: "幫忙把大家的椅子排整齊", guide: "操練成為神家忠信的小管家" },
-            { id: "t14", content: "大聲呼求：喔，主耶穌！", guide: "最簡單也最有能力的生命操練" },
+            { id: "t14", content: "大聲呼求：喔，主耶穌！", guide: "最有能力的生命操練" },
             { id: "t15", content: "做出一個強壯的精兵動作", guide: "在基督裡剛強壯膽" }
         ];
-        const initialEncs = [ "阿們！主很喜悅你 ❤️", "做得太棒了，你很寶貴！", "主耶穌看見你的操練了，加油！", "你是最勇敢的小精兵！", "哈利路亞！主永遠與你同在。", "你帶給大家許多喜樂與鼓勵！", "主愛你，我們大家也都愛你！" ];
+        const initialEncs = [ "做得太棒了！ ❤️", "你真的很寶貴，加油！", "大家看見你的操練了，真棒！", "你是最勇敢的小精兵！", "你帶給大家許多喜樂！", "我們大家都愛你！" ];
 
         let state = { tasks: [], encouragements: [], gridProgress: {}, sessionShownTaskIds: [], audioEnabled: true, pin: "1234" };
         let currentActiveIndex = -1;
         const iconTypes = ['lamb', 'star', 'heart', 'cloud'];
 
         function init() {
-            const savedState = localStorage.getItem('poke_fun_adventure_v5');
+            const savedState = localStorage.getItem('poke_fun_adventure_v6');
             if (savedState) {
                 state = JSON.parse(savedState);
                 if(!state.sessionShownTaskIds) state.sessionShownTaskIds = [];
@@ -461,7 +468,7 @@
             renderGrid(); initAdminEntry();
         }
 
-        function saveState() { localStorage.setItem('poke_fun_adventure_v5', JSON.stringify(state)); }
+        function saveState() { localStorage.setItem('poke_fun_adventure_v6', JSON.stringify(state)); }
         function toggleAudio(enabled) { initAudio(); state.audioEnabled = enabled; document.getElementById('audio-status-text').innerText = enabled ? "音效已開啟" : "音效已關閉"; saveState(); }
 
         function renderGrid() {
@@ -502,16 +509,43 @@
 
         function finishTask() {
             playSound('success');
-            const randomEnc = state.encouragements[Math.floor(Math.random() * state.encouragements.length)];
+            // 隨機選取鼓勵語，加入備份檢查
+            const encList = (state.encouragements && state.encouragements.length > 0) ? state.encouragements : initialEncs;
+            const randomEnc = encList[Math.floor(Math.random() * encList.length)];
+            
             document.getElementById('enc-text').innerText = randomEnc;
-            showView('enc-view'); state.gridProgress[currentActiveIndex] = true; saveState();
-            setTimeout(() => { document.body.classList.remove('task-active'); showView('grid-wall'); renderGrid(); }, 2500);
+            showView('enc-view'); 
+            state.gridProgress[currentActiveIndex] = true; 
+            saveState();
+            
+            setTimeout(() => { 
+                document.body.classList.remove('task-active'); 
+                showView('grid-wall'); 
+                renderGrid(); 
+            }, 2500);
         }
 
-        function cancelTask() { state.sessionShownTaskIds.pop(); saveState(); document.body.classList.remove('task-active'); showView('grid-wall'); renderGrid(); currentActiveIndex = -1; }
-        function showView(viewId) { document.querySelectorAll('.view').forEach(v => v.classList.remove('active')); if (viewId !== 'grid-wall') document.getElementById(viewId).classList.add('active'); }
+        function cancelTask() { 
+            state.sessionShownTaskIds.pop(); 
+            saveState(); 
+            document.body.classList.remove('task-active'); 
+            showView('grid-wall'); 
+            renderGrid(); 
+            currentActiveIndex = -1; 
+        }
+
+        function showView(viewId) { 
+            document.querySelectorAll('.view').forEach(v => {
+                if (v.id === viewId) v.classList.remove('hidden');
+                v.classList.remove('active');
+            }); 
+            if (viewId !== 'grid-wall') {
+                document.getElementById(viewId).classList.add('active');
+            }
+        }
 
         function requestAdminAccess() { const pass = prompt("請輸入管理者 PIN 碼："); if (pass === state.pin) openAdmin(); else if (pass !== null) alert("密碼不正確喔！"); }
+        
         function initAdminEntry() {
             let timer; const title = document.getElementById('app-title');
             const handleStart = () => { timer = setTimeout(() => { requestAdminAccess(); }, 2000)};
@@ -528,8 +562,8 @@
                 div.innerHTML = `<div style="flex-grow: 1;"><div style="font-weight:bold;">${t.content}</div></div><button onclick="deleteAdminTask(${idx})" style="color:#FF6B6B; border:none; background:none; cursor:pointer;">刪除</button>`;
                 list.appendChild(div);
             });
-            // 填寫目前的鼓勵語內容
             document.getElementById('admin-enc-textarea').value = state.encouragements.join('\n');
+            document.getElementById('admin-view').classList.remove('hidden');
             showView('admin-view');
         }
 
@@ -546,13 +580,21 @@
             const val = document.getElementById('admin-enc-textarea').value;
             state.encouragements = val.split('\n').filter(s => s.trim() !== "");
             saveState();
-            alert("鼓勵語已成功儲存！");
+            alert("儲存成功！");
+            closeAdmin();
         }
 
-        function deleteAdminTask(idx) { if(confirm("確定要刪除這張冒險卡嗎？")) { state.tasks.splice(idx, 1); saveState(); openAdmin(); } }
-        function closeAdmin() { showView('grid-wall'); renderGrid(); }
-        function resetAllGrids() { if(confirm("重置紀錄？")) { for(let i=1; i<=40; i++) state.gridProgress[i] = false; state.sessionShownTaskIds = []; saveState(); location.reload(); } }
-        function resetConfig() { if(confirm("還原原廠？")) { localStorage.removeItem('poke_fun_adventure_v5'); location.reload(); } }
+        function deleteAdminTask(idx) { if(confirm("確定要刪除嗎？")) { state.tasks.splice(idx, 1); saveState(); openAdmin(); } }
+        
+        function closeAdmin() { 
+            document.getElementById('admin-view').classList.add('hidden');
+            showView('grid-wall'); 
+            renderGrid(); 
+        }
+
+        function resetAllGrids() { if(confirm("要重置所有格子嗎？")) { for(let i=1; i<=40; i++) state.gridProgress[i] = false; state.sessionShownTaskIds = []; saveState(); location.reload(); } }
+        function resetConfig() { if(confirm("要還原所有設定（含任務）嗎？")) { localStorage.removeItem('poke_fun_adventure_v6'); location.reload(); } }
+        
         init();
     </script>
 </body>
