@@ -37,9 +37,9 @@
         body {
             background-color: var(--bg-texture);
             color: var(--text-main);
-            min-height: 100vh; /* 修正：使用最小高度 */
-            overflow-y: auto;   /* 修正：允許垂直滾動 */
-            overflow-x: hidden; /* 修正：禁止水平滾動 */
+            min-height: 100vh;
+            overflow-y: auto;
+            overflow-x: hidden;
             display: flex;
             flex-direction: column;
             background-image: 
@@ -49,7 +49,7 @@
             background-size: 100% 100%, 100% 100%, 40px 40px;
         }
 
-        /* 標題區域：自動縮放字體 */
+        /* 標題區域 */
         header {
             padding: 20px 10px 10px;
             text-align: center;
@@ -67,7 +67,7 @@
             filter: drop-shadow(0 4px 6px rgba(0,0,0,0.08));
         }
 
-        /* 管理按鈕：手機版縮小 */
+        /* 管理按鈕 */
         .btn-settings-trigger {
             position: absolute;
             right: 15px;
@@ -91,7 +91,7 @@
 
         .btn-settings-trigger:hover { opacity: 1; transform: rotate(45deg); }
 
-        /* 格子牆視圖 (8x5)：適配行動裝置 */
+        /* 格子牆視圖 (8x5) */
         .grid-container {
             flex-grow: 1;
             display: grid;
@@ -105,40 +105,19 @@
             transition: var(--transition);
         }
 
-        /* 手機直向或窄螢幕時調整格子 */
         @media (max-width: 768px) {
-            .grid-container {
-                grid-template-columns: repeat(4, 1fr); /* 手機版 4 欄 */
-                grid-template-rows: auto;
-            }
+            .grid-container { grid-template-columns: repeat(4, 1fr); }
         }
 
         @media (max-width: 480px) {
-            .grid-container {
-                grid-template-columns: repeat(3, 1fr); /* 極窄螢幕 3 欄 */
-            }
+            .grid-container { grid-template-columns: repeat(3, 1fr); }
         }
 
-        body.task-active {
-            overflow: hidden; /* 修正：任務出現時鎖定背景滾動 */
-        }
-
+        body.task-active { overflow: hidden; }
         body.task-active .grid-container {
             filter: grayscale(0.4) blur(1px) brightness(0.9);
             transform: scale(0.96);
             pointer-events: none;
-        }
-
-        /* 動畫 */
-        @keyframes character-bounce {
-            0%, 100% { transform: translateY(0) scale(1); }
-            50% { transform: translateY(-3px) scale(1.03); }
-        }
-
-        @keyframes card-wave {
-            0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(-1deg); }
-            75% { transform: rotate(1deg); }
         }
 
         /* 格子卡片 */
@@ -165,7 +144,12 @@
             animation: card-wave 0.8s ease-in-out infinite;
         }
 
-        /* 循環背景配色 */
+        @keyframes card-wave {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-1deg); }
+            75% { transform: rotate(1deg); }
+        }
+
         .c-1 { background-color: var(--color-blue); }
         .c-2 { background-color: var(--color-green); }
         .c-3 { background-color: var(--color-yellow); }
@@ -177,10 +161,8 @@
             cursor: default;
             transform: none !important;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
-            animation: none !important;
         }
 
-        /* 號碼貼紙 */
         .number-sticker {
             background: white;
             width: clamp(35px, 12vw, 54px);
@@ -200,7 +182,6 @@
             margin-top: -10px;
         }
 
-        /* 角色插圖 */
         .char-icon {
             position: absolute;
             bottom: -5%;
@@ -212,7 +193,7 @@
             transition: var(--transition);
         }
 
-        /* 任務視窗：修正為 fixed 確保捲動時仍覆蓋螢幕 */
+        /* 視窗層 */
         .view {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -229,7 +210,6 @@
         }
 
         .view.active { opacity: 1; pointer-events: auto; }
-
         #task-view { background: rgba(253, 251, 247, 0.95); }
 
         .card-task {
@@ -240,7 +220,6 @@
             max-width: 95%;
             width: 100%;
             border: clamp(6px, 2vw, 12px) solid rgba(255,255,255,0.8);
-            animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.25);
             position: relative;
             max-height: 90vh;
             overflow-y: auto;
@@ -265,13 +244,7 @@
             border-left: 6px solid var(--color-green);
         }
 
-        /* 按鈕風格 */
-        .button-group { 
-            display: flex; 
-            gap: 15px; 
-            justify-content: center; 
-            flex-wrap: wrap; 
-        }
+        .button-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
 
         .btn {
             padding: clamp(12px, 3vw, 22px) clamp(20px, 8vw, 70px);
@@ -285,25 +258,10 @@
             min-width: 120px;
         }
 
-        .btn-primary {
-            background: linear-gradient(to bottom, #C1E1C1, #9BC49B);
-            color: white;
-        }
+        .btn-primary { background: linear-gradient(to bottom, #C1E1C1, #9BC49B); color: white; }
+        .btn-secondary { background: #F3F0EC; color: #9C948C; }
 
-        .btn-secondary {
-            background: #F3F0EC;
-            color: #9C948C;
-        }
-
-        /* 管理模式視窗 */
-        .admin-view { 
-            background: #fff; 
-            padding: 20px; 
-            overflow-y: auto; 
-            text-align: left;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-        }
+        .admin-view { background: #fff; padding: 20px; overflow-y: auto; text-align: left; position: fixed; top: 0; left: 0; width: 100%; height: 100%; }
         
         @media (max-width: 600px) {
             .btn { width: 100%; }
@@ -312,9 +270,7 @@
 
         .check-mark {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+            top: 50%; left: 50%; transform: translate(-50%, -50%);
             font-size: clamp(2.5rem, 15vw, 4.5rem);
             color: rgba(93, 84, 76, 0.2);
             z-index: 0;
@@ -323,74 +279,41 @@
 
         .svg-lib { display: none; }
 
-        /* 音效開關開關 UI */
-        .toggle-switch {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 15px 0;
-            cursor: pointer;
-        }
+        .toggle-switch { display: flex; align-items: center; gap: 10px; margin: 15px 0; cursor: pointer; }
         .toggle-input { display: none; }
-        .toggle-slider {
-            width: 45px; height: 25px;
-            background: #ccc; border-radius: 20px;
-            position: relative; transition: 0.3s;
-        }
+        .toggle-slider { width: 45px; height: 25px; background: #ccc; border-radius: 20px; position: relative; transition: 0.3s; }
         .toggle-input:checked + .toggle-slider { background: var(--color-green); }
-        .toggle-slider:before {
-            content: ''; position: absolute;
-            width: 19px; height: 19px;
-            background: white; border-radius: 50%;
-            top: 3px; left: 3px; transition: 0.3s;
-        }
+        .toggle-slider:before { content: ''; position: absolute; width: 19px; height: 19px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: 0.3s; }
         .toggle-input:checked + .toggle-slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body>
 
-    <!-- SVG 角色插圖庫 -->
+    <!-- SVG 角色庫 -->
     <svg class="svg-lib">
         <symbol id="char-lamb-awake" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="42" fill="#F4F2EF" />
-            <circle cx="35" cy="45" r="5" fill="#5D544C" />
-            <circle cx="65" cy="45" r="5" fill="#5D544C" />
-            <path d="M42 62 Q50 70 58 62" fill="none" stroke="#5D544C" stroke-width="4" stroke-linecap="round" />
-            <ellipse cx="15" cy="40" rx="10" ry="14" fill="#F4F2EF" />
-            <ellipse cx="85" cy="40" rx="10" ry="14" fill="#F4F2EF" />
+            <circle cx="50" cy="50" r="42" fill="#F4F2EF" /><circle cx="35" cy="45" r="5" fill="#5D544C" /><circle cx="65" cy="45" r="5" fill="#5D544C" /><path d="M42 62 Q50 70 58 62" fill="none" stroke="#5D544C" stroke-width="4" stroke-linecap="round" /><ellipse cx="15" cy="40" rx="10" ry="14" fill="#F4F2EF" /><ellipse cx="85" cy="40" rx="10" ry="14" fill="#F4F2EF" />
         </symbol>
         <symbol id="char-lamb-sleep" viewBox="0 0 100 100">
-            <circle cx="50" cy="50" r="42" fill="#E0DED9" />
-            <path d="M30 45 Q35 50 40 45" fill="none" stroke="#A8A096" stroke-width="4" stroke-linecap="round" />
-            <path d="M60 45 Q65 50 70 45" fill="none" stroke="#A8A096" stroke-width="4" stroke-linecap="round" />
+            <circle cx="50" cy="50" r="42" fill="#E0DED9" /><path d="M30 45 Q35 50 40 45" fill="none" stroke="#A8A096" stroke-width="4" stroke-linecap="round" /><path d="M60 45 Q65 50 70 45" fill="none" stroke="#A8A096" stroke-width="4" stroke-linecap="round" />
         </symbol>
         <symbol id="char-star-awake" viewBox="0 0 100 100">
-            <path d="M50 8 L63 38 L95 38 L70 58 L80 88 L50 72 L20 88 L30 58 L5 38 L37 38 Z" fill="#FFF9C4" />
-            <circle cx="42" cy="48" r="3.5" fill="#5D544C" />
-            <circle cx="58" cy="48" r="3.5" fill="#5D544C" />
+            <path d="M50 8 L63 38 L95 38 L70 58 L80 88 L50 72 L20 88 L30 58 L5 38 L37 38 Z" fill="#FFF9C4" /><circle cx="42" cy="48" r="3.5" fill="#5D544C" /><circle cx="58" cy="48" r="3.5" fill="#5D544C" />
         </symbol>
         <symbol id="char-star-sleep" viewBox="0 0 100 100">
-            <path d="M50 8 L63 38 L95 38 L70 58 L80 88 L50 72 L20 88 L30 58 L5 38 L37 38 Z" fill="#E8E4E0" />
-            <path d="M38 48 Q42 52 46 48" fill="none" stroke="#A8A096" stroke-width="3" />
-            <path d="M54 48 Q58 52 62 48" fill="none" stroke="#A8A096" stroke-width="3" />
+            <path d="M50 8 L63 38 L95 38 L70 58 L80 88 L50 72 L20 88 L30 58 L5 38 L37 38 Z" fill="#E8E4E0" /><path d="M38 48 Q42 52 46 48" fill="none" stroke="#A8A096" stroke-width="3" /><path d="M54 48 Q58 52 62 48" fill="none" stroke="#A8A096" stroke-width="3" />
         </symbol>
         <symbol id="char-heart-awake" viewBox="0 0 100 100">
-            <path d="M50 88 L43 81 C25 65 15 53 15 38 C15 25 25 15 38 15 C45 15 52 18 56 25 C60 18 67 15 74 15 C87 15 97 25 97 38 C97 53 87 65 69 81 Z" fill="#FFD1DC" />
-            <circle cx="45" cy="40" r="4" fill="#5D544C" />
-            <circle cx="67" cy="40" r="4" fill="#5D544C" />
+            <path d="M50 88 L43 81 C25 65 15 53 15 38 C15 25 25 15 38 15 C45 15 52 18 56 25 C60 18 67 15 74 15 C87 15 97 25 97 38 C97 53 87 65 69 81 Z" fill="#FFD1DC" /><circle cx="45" cy="40" r="4" fill="#5D544C" /><circle cx="67" cy="40" r="4" fill="#5D544C" />
         </symbol>
         <symbol id="char-heart-sleep" viewBox="0 0 100 100">
-            <path d="M50 88 L43 81 C25 65 15 53 15 38 C15 25 25 15 38 15 C45 15 52 18 56 25 C60 18 67 15 74 15 C87 15 97 25 97 38 C97 53 87 65 69 81 Z" fill="#EAE8E5" />
-            <path d="M40 40 Q45 45 50 40" fill="none" stroke="#A8A096" stroke-width="3" />
+            <path d="M50 88 L43 81 C25 65 15 53 15 38 C15 25 25 15 38 15 C45 15 52 18 56 25 C60 18 67 15 74 15 C87 15 97 25 97 38 C97 53 87 65 69 81 Z" fill="#EAE8E5" /><path d="M40 40 Q45 45 50 40" fill="none" stroke="#A8A096" stroke-width="3" />
         </symbol>
         <symbol id="char-cloud-awake" viewBox="0 0 100 100">
-            <path d="M25 60 C10 60 10 40 25 40 C25 20 45 20 50 35 C55 20 75 20 75 40 C90 40 90 60 75 60 Z" fill="#E3F2FD" />
-            <circle cx="42" cy="45" r="3" fill="#5D544C" />
-            <circle cx="58" cy="45" r="3" fill="#5D544C" />
+            <path d="M25 60 C10 60 10 40 25 40 C25 20 45 20 50 35 C55 20 75 20 75 40 C90 40 90 60 75 60 Z" fill="#E3F2FD" /><circle cx="42" cy="45" r="3" fill="#5D544C" /><circle cx="58" cy="45" r="3" fill="#5D544C" />
         </symbol>
         <symbol id="char-cloud-sleep" viewBox="0 0 100 100">
-            <path d="M25 60 C10 60 10 40 25 40 C25 20 45 20 50 35 C55 20 75 20 75 40 C90 40 90 60 75 60 Z" fill="#DCE1E6" />
-            <path d="M38 45 Q42 48 46 45" fill="none" stroke="#A8A096" stroke-width="2" />
+            <path d="M25 60 C10 60 10 40 25 40 C25 20 45 20 50 35 C55 20 75 20 75 40 C90 40 90 60 75 60 Z" fill="#DCE1E6" /><path d="M38 45 Q42 48 46 45" fill="none" stroke="#A8A096" stroke-width="2" />
         </symbol>
     </svg>
 
@@ -415,11 +338,12 @@
 
     <div id="enc-view" class="view">
         <div class="card-task" style="border-color: #F3E5F5;">
-            <div id="enc-text" class="task-content" style="color: #7D6E5D;">主很喜悅你的操練 ❤️</div>
-            <div style="margin-top: 20px; font-size: 1.2rem; color: #A8A096;">[ 任務達成！正在回到冒險牆 ]</div>
+            <div id="enc-text" class="task-content" style="color: #7D6E5D;">任務達成！ ❤️</div>
+            <div style="margin-top: 20px; font-size: 1.2rem; color: #A8A096;">[ 正在回到冒險牆 ]</div>
         </div>
     </div>
 
+    <!-- 管理者介面 -->
     <div id="admin-view" class="view admin-view">
         <div style="max-width: 900px; width: 100%; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -442,7 +366,15 @@
                 <button onclick="addAdminTask()" class="btn btn-primary" style="padding: 10px; font-size: 1rem; width: 100%;">增加到任務庫</button>
             </div>
 
-            <h3 style="margin: 15px 0 10px;">📋 任務總表 (<span id="task-count-display">0</span>)</h3>
+            <!-- 新增：鼓勵語編輯區 -->
+            <div style="background: #FDFBF7; padding: 15px; border-radius: 15px; border: 2px dashed #E8E1D9; margin-top: 20px;">
+                <h3>💖 編輯鼓勵語 (每行一句)</h3>
+                <p style="font-size: 0.85rem; color: #888; margin-bottom: 10px;">完成任務後會隨機選取一句顯示給孩子。</p>
+                <textarea id="admin-enc-textarea" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; height: 120px; font-size: 1rem;"></textarea>
+                <button onclick="saveEncConfig()" class="btn btn-primary" style="padding: 10px; font-size: 1rem; width: 100%;">儲存鼓勵語</button>
+            </div>
+
+            <h3 style="margin: 25px 0 10px;">📋 任務總表 (<span id="task-count-display">0</span>)</h3>
             <div id="admin-task-list" style="max-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; padding: 10px;"></div>
 
             <div style="margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap;">
@@ -463,37 +395,26 @@
             masterGain.connect(audioCtx.destination);
             switch(type) {
                 case 'tap':
-                    const oscTap = audioCtx.createOscillator();
-                    const gainTap = audioCtx.createGain();
+                    const oscTap = audioCtx.createOscillator(); const gainTap = audioCtx.createGain();
                     oscTap.type = 'sine'; oscTap.frequency.setValueAtTime(300, audioCtx.currentTime);
                     oscTap.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
-                    gainTap.gain.setValueAtTime(0.5, audioCtx.currentTime);
-                    gainTap.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                    oscTap.connect(gainTap); gainTap.connect(masterGain);
-                    oscTap.start(); oscTap.stop(audioCtx.currentTime + 0.1);
+                    gainTap.gain.setValueAtTime(0.5, audioCtx.currentTime); gainTap.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                    oscTap.connect(gainTap); gainTap.connect(masterGain); oscTap.start(); oscTap.stop(audioCtx.currentTime + 0.1);
                     break;
                 case 'shimmer':
                     [880, 1320].forEach((freq, i) => {
-                        const osc = audioCtx.createOscillator();
-                        const gain = audioCtx.createGain();
+                        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                         osc.type = 'sine'; osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (i * 0.05));
-                        gain.gain.setValueAtTime(0, audioCtx.currentTime + (i * 0.05));
-                        gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + (i * 0.05) + 0.05);
-                        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-                        osc.connect(gain); gain.connect(masterGain);
-                        osc.start(audioCtx.currentTime + (i * 0.05)); osc.stop(audioCtx.currentTime + 0.6);
+                        gain.gain.setValueAtTime(0, audioCtx.currentTime + (i * 0.05)); gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + (i * 0.05) + 0.05); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+                        osc.connect(gain); gain.connect(masterGain); osc.start(audioCtx.currentTime + (i * 0.05)); osc.stop(audioCtx.currentTime + 0.6);
                     });
                     break;
                 case 'success':
                     [523.25, 659.25, 783.99].forEach((freq, i) => {
-                        const osc = audioCtx.createOscillator();
-                        const gain = audioCtx.createGain();
+                        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
                         osc.type = 'sine'; osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (i * 0.15));
-                        gain.gain.setValueAtTime(0, audioCtx.currentTime + (i * 0.15));
-                        gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + (i * 0.15) + 0.05);
-                        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.15) + 0.4);
-                        osc.connect(gain); gain.connect(masterGain);
-                        osc.start(audioCtx.currentTime + (i * 0.15)); osc.stop(audioCtx.currentTime + (i * 0.15) + 0.5);
+                        gain.gain.setValueAtTime(0, audioCtx.currentTime + (i * 0.15)); gain.gain.linearRampToValueAtTime(0.4, audioCtx.currentTime + (i * 0.15) + 0.05); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + (i * 0.15) + 0.4);
+                        osc.connect(gain); gain.connect(masterGain); osc.start(audioCtx.currentTime + (i * 0.15)); osc.stop(audioCtx.currentTime + (i * 0.15) + 0.5);
                     });
                     break;
             }
@@ -607,6 +528,8 @@
                 div.innerHTML = `<div style="flex-grow: 1;"><div style="font-weight:bold;">${t.content}</div></div><button onclick="deleteAdminTask(${idx})" style="color:#FF6B6B; border:none; background:none; cursor:pointer;">刪除</button>`;
                 list.appendChild(div);
             });
+            // 填寫目前的鼓勵語內容
+            document.getElementById('admin-enc-textarea').value = state.encouragements.join('\n');
             showView('admin-view');
         }
 
@@ -618,6 +541,14 @@
             saveState(); openAdmin();
             document.getElementById('new-task-title').value = ''; document.getElementById('new-task-guide').value = '';
         }
+
+        function saveEncConfig() {
+            const val = document.getElementById('admin-enc-textarea').value;
+            state.encouragements = val.split('\n').filter(s => s.trim() !== "");
+            saveState();
+            alert("鼓勵語已成功儲存！");
+        }
+
         function deleteAdminTask(idx) { if(confirm("確定要刪除這張冒險卡嗎？")) { state.tasks.splice(idx, 1); saveState(); openAdmin(); } }
         function closeAdmin() { showView('grid-wall'); renderGrid(); }
         function resetAllGrids() { if(confirm("重置紀錄？")) { for(let i=1; i<=40; i++) state.gridProgress[i] = false; state.sessionShownTaskIds = []; saveState(); location.reload(); } }
