@@ -146,8 +146,8 @@
 
         @keyframes card-wave {
             0%, 100% { transform: rotate(0deg); }
-            25% { transform: rotate(-1deg); }
-            75% { transform: rotate(1deg); }
+            25% { transform: rotate(-1.5deg); }
+            75% { transform: rotate(1.5deg); }
         }
 
         .c-1 { background-color: var(--color-blue); }
@@ -210,6 +210,8 @@
         }
 
         .view.active { opacity: 1; pointer-events: auto; }
+        .view.hidden { display: none !important; }
+
         #task-view { background: rgba(253, 251, 247, 0.95); }
 
         .card-task {
@@ -247,8 +249,8 @@
         .button-group { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; }
 
         .btn {
-            padding: clamp(12px, 3vw, 22px) clamp(20px, 8vw, 70px);
-            font-size: clamp(1rem, 4vw, 1.8rem);
+            padding: clamp(12px, 3vw, 22px) clamp(20px, 8vw, 60px);
+            font-size: clamp(1rem, 4vw, 1.6rem);
             font-weight: bold;
             border: none;
             border-radius: 50px;
@@ -256,17 +258,62 @@
             transition: var(--transition);
             box-shadow: 0 6px 15px rgba(0,0,0,0.1);
             min-width: 120px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .btn-primary { background: linear-gradient(to bottom, #C1E1C1, #9BC49B); color: white; }
         .btn-secondary { background: #F3F0EC; color: #9C948C; }
         .btn-danger { background: #FFAB91; color: white; }
 
-        .admin-view { background: #fff; padding: 20px; overflow-y: auto; text-align: left; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; }
+        /* 管理模式視窗修正 */
+        .admin-view { 
+            background: #fff; 
+            padding: 20px; 
+            overflow-y: auto; 
+            text-align: left; 
+            position: fixed; 
+            top: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 200; 
+        }
+
+        .admin-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding-bottom: 50px;
+        }
         
-        @media (max-width: 600px) {
-            .btn { width: 100%; }
-            .button-group { flex-direction: column; }
+        .admin-footer { 
+            margin-top: 40px; 
+            padding-top: 30px; 
+            border-top: 2px solid #f8f8f8; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            gap: 15px; 
+        }
+
+        /* 讓底部儲存按鈕不要太大 */
+        .btn-save-main {
+            width: 90%;
+            max-width: 350px;
+            font-size: 1.2rem;
+            padding: 15px 30px;
+        }
+
+        .admin-danger-zone {
+            display: flex;
+            gap: 10px;
+            width: 90%;
+            max-width: 350px;
+        }
+
+        .admin-danger-zone .btn {
+            flex: 1;
+            padding: 10px;
+            font-size: 0.9rem;
+            min-width: auto;
         }
 
         .check-mark {
@@ -279,15 +326,12 @@
         }
 
         .svg-lib { display: none; }
-
         .toggle-switch { display: flex; align-items: center; gap: 10px; margin: 15px 0; cursor: pointer; }
         .toggle-input { display: none; }
         .toggle-slider { width: 45px; height: 25px; background: #ccc; border-radius: 20px; position: relative; transition: 0.3s; }
         .toggle-input:checked + .toggle-slider { background: var(--color-green); }
         .toggle-slider:before { content: ''; position: absolute; width: 19px; height: 19px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: 0.3s; }
         .toggle-input:checked + .toggle-slider:before { transform: translateX(20px); }
-
-        .admin-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #f0f0f0; display: flex; flex-direction: column; gap: 10px; }
     </style>
 </head>
 <body>
@@ -327,8 +371,7 @@
 
     <div id="grid-wall" class="grid-container"></div>
 
-    <!-- 任務揭曉視窗 -->
-    <div id="task-view" class="view">
+    <div id="task-view" class="view hidden">
         <div class="card-task">
             <div class="task-pre-title">✨ 勇敢的冒險者，這是你的小任務 ✨</div>
             <div id="current-task-text" class="task-content">尋找任務中...</div>
@@ -340,20 +383,18 @@
         </div>
     </div>
 
-    <!-- 鼓勵語視窗 -->
-    <div id="enc-view" class="view">
+    <div id="enc-view" class="view hidden">
         <div class="card-task" style="border-color: #F3E5F5;">
             <div id="enc-text" class="task-content" style="color: #7D6E5D;">任務達成！ ❤️</div>
             <div style="margin-top: 20px; font-size: 1.2rem; color: #A8A096;">[ 正在回到冒險牆 ]</div>
         </div>
     </div>
 
-    <!-- 管理者介面 -->
     <div id="admin-view" class="view admin-view hidden">
-        <div style="max-width: 900px; width: 100%; margin: 0 auto; background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+        <div class="admin-container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2>冒險任務控制台</h2>
-                <button onclick="closeAdmin()" class="btn btn-secondary" style="padding: 10px 20px; min-width: auto; font-size: 1rem;">返回遊戲</button>
+                <button onclick="closeAdmin()" class="btn btn-secondary" style="padding: 10px 20px; min-width: auto; font-size: 0.9rem;">返回遊戲</button>
             </div>
 
             <div class="admin-section">
@@ -368,24 +409,24 @@
                 <h3>📜 新增任務卡</h3>
                 <input type="text" id="new-task-title" placeholder="主要任務內容 (大字)" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd;">
                 <input type="text" id="new-task-guide" placeholder="老師引導說明 (小字)" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 10px; border: 1px solid #ddd;">
-                <button onclick="addAdminTask()" class="btn btn-primary" style="padding: 10px; font-size: 1rem; width: 100%;">增加到任務庫</button>
+                <button onclick="addAdminTask()" class="btn btn-primary" style="padding: 12px; font-size: 1rem; width: 100%;">增加到任務庫</button>
             </div>
 
             <div style="background: #FDFBF7; padding: 15px; border-radius: 15px; border: 2px dashed #E8E1D9; margin-top: 20px;">
                 <h3>💖 編輯鼓勵語 (每行一句)</h3>
                 <p style="font-size: 0.85rem; color: #888; margin-bottom: 10px;">完成任務後會隨機選取一句顯示給孩子。</p>
                 <textarea id="admin-enc-textarea" style="width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; border: 1px solid #ddd; height: 120px; font-size: 1rem;"></textarea>
-                <button onclick="saveEncConfig()" class="btn btn-primary" style="padding: 10px; font-size: 1rem; width: 100%;">儲存並返回地圖</button>
+                <button onclick="saveEncConfig()" class="btn btn-primary" style="padding: 12px; font-size: 1rem; width: 100%;">儲存鼓勵語</button>
             </div>
 
             <h3 style="margin: 25px 0 10px;">📋 任務總表 (<span id="task-count-display">0</span>)</h3>
-            <div id="admin-task-list" style="max-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; padding: 10px;"></div>
+            <div id="admin-task-list" style="max-height: 250px; overflow-y: auto; border: 1px solid #eee; border-radius: 10px; padding: 10px; background: #fafafa;"></div>
 
             <div class="admin-footer">
-                <button onclick="closeAdmin()" class="btn btn-primary" style="margin-bottom: 20px;">儲存完成並返回地圖</button>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <button onclick="resetAllGrids()" class="btn btn-danger" style="flex: 1; min-width: auto; font-size: 0.9rem;">重置地圖進度</button>
-                    <button onclick="resetConfig()" class="btn btn-secondary" style="flex: 1; min-width: auto; font-size: 0.9rem;">恢復原廠設定</button>
+                <button onclick="closeAdmin()" class="btn btn-primary btn-save-main">儲存並返回地圖</button>
+                <div class="admin-danger-zone">
+                    <button onclick="resetAllGrids()" class="btn btn-danger">重置地圖進度</button>
+                    <button onclick="resetConfig()" class="btn btn-secondary">恢復原廠設定</button>
                 </div>
             </div>
         </div>
@@ -428,7 +469,7 @@
         }
 
         const initialTasks = [
-            { id: "t1", content: "大聲說一次「主耶穌我愛你」", guide: "可以邀請大家一起回應他喔" },
+            { id: "t1", content: "大聲說一次「主耶穌我愛你」", guide: "老師可以帶領大家一起回應他喔" },
             { id: "t2", content: "找一位小朋友擊掌 High-five", guide: "把喜樂分享給身邊的朋友" },
             { id: "t3", content: "露出一個最大、最棒的笑容", guide: "喜樂的心乃是良藥" },
             { id: "t4", content: "學小羊咩咩叫 3 聲", guide: "我們都是主所愛護的小羊" },
@@ -441,7 +482,7 @@
             { id: "t11", content: "說出一件感謝主的事情", guide: "培育凡事謝恩的好品格" },
             { id: "t12", content: "對旁邊朋友說「主愛你」", guide: "在主裡彼此相愛" },
             { id: "t13", content: "幫忙把大家的椅子排整齊", guide: "操練成為神家忠信的小管家" },
-            { id: "t14", content: "大聲呼求：喔，主耶穌！", guide: "最有能力的生命操練" },
+            { id: "t14", content: "大聲呼求：喔，主耶穌！", guide: "生命操練最有能力" },
             { id: "t15", content: "做出一個強壯的精兵動作", guide: "在基督裡剛強壯膽" }
         ];
         const initialEncs = [ "做得太棒了！ ❤️", "你真的很寶貴，加油！", "大家看見你的操練了，真棒！", "你是最勇敢的小精兵！", "你帶給大家許多喜樂！", "我們大家都愛你！" ];
@@ -455,6 +496,8 @@
             if (savedState) {
                 state = JSON.parse(savedState);
                 if(!state.sessionShownTaskIds) state.sessionShownTaskIds = [];
+                // 補救：如果舊資料沒有 encouragements 欄位，手動補上
+                if(!state.encouragements || state.encouragements.length === 0) state.encouragements = initialEncs;
             } else {
                 state.tasks = JSON.parse(JSON.stringify(initialTasks)); state.encouragements = initialEncs;
                 for(let i=1; i<=40; i++) state.gridProgress[i] = false;
@@ -509,9 +552,9 @@
 
         function finishTask() {
             playSound('success');
-            // 隨機選取鼓勵語，加入備份檢查
-            const encList = (state.encouragements && state.encouragements.length > 0) ? state.encouragements : initialEncs;
-            const randomEnc = encList[Math.floor(Math.random() * encList.length)];
+            // 修復點：確保隨機選取目前的鼓勵語，若為空則備份預設
+            const list = (state.encouragements && state.encouragements.length > 0) ? state.encouragements : initialEncs;
+            const randomEnc = list[Math.floor(Math.random() * list.length)];
             
             document.getElementById('enc-text').innerText = randomEnc;
             showView('enc-view'); 
@@ -535,12 +578,16 @@
         }
 
         function showView(viewId) { 
+            // 修正版視窗切換邏輯
             document.querySelectorAll('.view').forEach(v => {
-                if (v.id === viewId) v.classList.remove('hidden');
+                v.classList.add('hidden');
                 v.classList.remove('active');
             }); 
             if (viewId !== 'grid-wall') {
-                document.getElementById(viewId).classList.add('active');
+                const target = document.getElementById(viewId);
+                target.classList.remove('hidden');
+                void target.offsetWidth; // 觸發重繪確保動畫生效
+                target.classList.add('active');
             }
         }
 
@@ -559,18 +606,18 @@
             document.getElementById('task-count-display').innerText = state.tasks.length;
             state.tasks.forEach((t, idx) => {
                 const div = document.createElement('div'); div.style.padding = "10px"; div.style.borderBottom = "1px solid #f0f0f0"; div.style.display = "flex"; div.style.justifyContent = "space-between"; div.style.alignItems = "center";
-                div.innerHTML = `<div style="flex-grow: 1;"><div style="font-weight:bold;">${t.content}</div></div><button onclick="deleteAdminTask(${idx})" style="color:#FF6B6B; border:none; background:none; cursor:pointer;">刪除</button>`;
+                div.innerHTML = `<div style="flex-grow: 1;"><div style="font-weight:bold;">${t.content}</div></div><button onclick="deleteAdminTask(${idx})" style="color:#FF6B6B; border:none; background:none; cursor:pointer; font-weight:bold;">刪除</button>`;
                 list.appendChild(div);
             });
-            document.getElementById('admin-enc-textarea').value = state.encouragements.join('\n');
-            document.getElementById('admin-view').classList.remove('hidden');
+            // 確保 textarea 載入目前的鼓勵語
+            document.getElementById('admin-enc-textarea').value = (state.encouragements || initialEncs).join('\n');
             showView('admin-view');
         }
 
         function addAdminTask() {
             const content = document.getElementById('new-task-title').value.trim();
             const guide = document.getElementById('new-task-guide').value.trim();
-            if (!content) return alert("請填寫任務大字內容");
+            if (!content) return alert("請填寫任務內容");
             state.tasks.push({ id: "adv-" + Date.now(), content, guide });
             saveState(); openAdmin();
             document.getElementById('new-task-title').value = ''; document.getElementById('new-task-guide').value = '';
@@ -580,19 +627,18 @@
             const val = document.getElementById('admin-enc-textarea').value;
             state.encouragements = val.split('\n').filter(s => s.trim() !== "");
             saveState();
-            alert("儲存成功！");
+            alert("鼓勵語儲存成功！");
             closeAdmin();
         }
 
         function deleteAdminTask(idx) { if(confirm("確定要刪除嗎？")) { state.tasks.splice(idx, 1); saveState(); openAdmin(); } }
         
         function closeAdmin() { 
-            document.getElementById('admin-view').classList.add('hidden');
             showView('grid-wall'); 
             renderGrid(); 
         }
 
-        function resetAllGrids() { if(confirm("要重置所有格子嗎？")) { for(let i=1; i<=40; i++) state.gridProgress[i] = false; state.sessionShownTaskIds = []; saveState(); location.reload(); } }
+        function resetAllGrids() { if(confirm("要重置所有格子進度嗎？")) { for(let i=1; i<=40; i++) state.gridProgress[i] = false; state.sessionShownTaskIds = []; saveState(); location.reload(); } }
         function resetConfig() { if(confirm("要還原所有設定（含任務）嗎？")) { localStorage.removeItem('poke_fun_adventure_v6'); location.reload(); } }
         
         init();
