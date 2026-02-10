@@ -37,8 +37,9 @@
         body {
             background-color: var(--bg-texture);
             color: var(--text-main);
-            height: 100vh;
-            overflow: hidden;
+            min-height: 100vh; /* 修正：使用最小高度 */
+            overflow-y: auto;   /* 修正：允許垂直滾動 */
+            overflow-x: hidden; /* 修正：禁止水平滾動 */
             display: flex;
             flex-direction: column;
             background-image: 
@@ -50,7 +51,7 @@
 
         /* 標題區域：自動縮放字體 */
         header {
-            padding: 15px 10px 5px;
+            padding: 20px 10px 10px;
             text-align: center;
             flex-shrink: 0;
             position: relative;
@@ -70,7 +71,7 @@
         .btn-settings-trigger {
             position: absolute;
             right: 15px;
-            top: 15px;
+            top: 20px;
             background: rgba(255,255,255,0.6);
             border: 2px solid white;
             width: clamp(35px, 8vw, 45px);
@@ -96,20 +97,30 @@
             display: grid;
             grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(5, 1fr);
-            gap: clamp(5px, 1.5vw, 15px);
-            padding: 10px clamp(10px, 4vw, 40px) 20px;
+            gap: clamp(8px, 2vw, 15px);
+            padding: 10px clamp(15px, 4vw, 40px) 40px;
             max-width: 1500px;
             margin: 0 auto;
             width: 100%;
             transition: var(--transition);
         }
 
-        /* 手機直向時調整格子，避免 8 欄太擠 */
-        @media (max-width: 600px) {
+        /* 手機直向或窄螢幕時調整格子 */
+        @media (max-width: 768px) {
             .grid-container {
-                grid-template-columns: repeat(5, 1fr);
-                grid-template-rows: repeat(8, 1fr);
+                grid-template-columns: repeat(4, 1fr); /* 手機版 4 欄 */
+                grid-template-rows: auto;
             }
+        }
+
+        @media (max-width: 480px) {
+            .grid-container {
+                grid-template-columns: repeat(3, 1fr); /* 極窄螢幕 3 欄 */
+            }
+        }
+
+        body.task-active {
+            overflow: hidden; /* 修正：任務出現時鎖定背景滾動 */
         }
 
         body.task-active .grid-container {
@@ -145,7 +156,7 @@
             position: relative;
             overflow: hidden;
             z-index: 1;
-            aspect-ratio: 1 / 1; /* 保持正方形 */
+            aspect-ratio: 1 / 1;
         }
 
         .poke-item:hover {
@@ -172,13 +183,13 @@
         /* 號碼貼紙 */
         .number-sticker {
             background: white;
-            width: clamp(30px, 10vw, 54px);
-            height: clamp(30px, 10vw, 54px);
+            width: clamp(35px, 12vw, 54px);
+            height: clamp(35px, 12vw, 54px);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: clamp(1rem, 4vw, 1.8rem);
+            font-size: clamp(1.2rem, 5vw, 1.8rem);
             font-weight: 900;
             color: #7D6E5D;
             box-shadow: var(--shadow-sticker);
@@ -201,7 +212,7 @@
             transition: var(--transition);
         }
 
-        /* 任務視窗 */
+        /* 任務視窗：修正為 fixed 確保捲動時仍覆蓋螢幕 */
         .view {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -226,15 +237,17 @@
             padding: clamp(25px, 8vw, 60px);
             border-radius: clamp(20px, 5vw, 40px);
             box-shadow: 0 20px 60px rgba(93, 84, 76, 0.2);
-            max-width: 90%;
+            max-width: 95%;
             width: 100%;
             border: clamp(6px, 2vw, 12px) solid rgba(255,255,255,0.8);
             animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.25);
             position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .task-content {
-            font-size: clamp(1.8rem, 8vw, 4.2rem);
+            font-size: clamp(1.5rem, 7vw, 4.2rem);
             font-weight: 900;
             margin-bottom: clamp(20px, 5vw, 40px);
             line-height: 1.2;
@@ -242,11 +255,11 @@
         }
 
         .task-guide {
-            font-size: clamp(1rem, 4vw, 1.6rem);
+            font-size: clamp(0.95rem, 4vw, 1.6rem);
             color: #8D8276;
             margin-bottom: clamp(30px, 8vw, 60px);
             background: #F9F7F5;
-            padding: 15px 25px;
+            padding: 15px 20px;
             border-radius: 15px;
             display: inline-block;
             border-left: 6px solid var(--color-green);
@@ -261,26 +274,40 @@
         }
 
         .btn {
-            padding: clamp(12px, 3vw, 22px) clamp(20px, 10vw, 70px);
-            font-size: clamp(1.1rem, 4vw, 1.8rem);
+            padding: clamp(12px, 3vw, 22px) clamp(20px, 8vw, 70px);
+            font-size: clamp(1rem, 4vw, 1.8rem);
             font-weight: bold;
             border: none;
             border-radius: 50px;
             cursor: pointer;
             transition: var(--transition);
             box-shadow: 0 6px 15px rgba(0,0,0,0.1);
-            width: auto;
-            min-width: 140px;
+            min-width: 120px;
         }
 
-        /* 管理模式適應手機 */
-        .admin-view { background: #fff; padding: 20px; overflow-y: auto; text-align: left; }
-        .admin-section { margin-bottom: 20px; }
+        .btn-primary {
+            background: linear-gradient(to bottom, #C1E1C1, #9BC49B);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #F3F0EC;
+            color: #9C948C;
+        }
+
+        /* 管理模式視窗 */
+        .admin-view { 
+            background: #fff; 
+            padding: 20px; 
+            overflow-y: auto; 
+            text-align: left;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+        }
         
         @media (max-width: 600px) {
             .btn { width: 100%; }
             .button-group { flex-direction: column; }
-            .card-task { padding: 30px 20px; }
         }
 
         .check-mark {
@@ -288,13 +315,36 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: clamp(2.5rem, 10vw, 4.5rem);
+            font-size: clamp(2.5rem, 15vw, 4.5rem);
             color: rgba(93, 84, 76, 0.2);
             z-index: 0;
             font-weight: 900;
         }
 
         .svg-lib { display: none; }
+
+        /* 音效開關開關 UI */
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 15px 0;
+            cursor: pointer;
+        }
+        .toggle-input { display: none; }
+        .toggle-slider {
+            width: 45px; height: 25px;
+            background: #ccc; border-radius: 20px;
+            position: relative; transition: 0.3s;
+        }
+        .toggle-input:checked + .toggle-slider { background: var(--color-green); }
+        .toggle-slider:before {
+            content: ''; position: absolute;
+            width: 19px; height: 19px;
+            background: white; border-radius: 50%;
+            top: 3px; left: 3px; transition: 0.3s;
+        }
+        .toggle-input:checked + .toggle-slider:before { transform: translateX(20px); }
     </style>
 </head>
 <body>
@@ -415,8 +465,7 @@
                 case 'tap':
                     const oscTap = audioCtx.createOscillator();
                     const gainTap = audioCtx.createGain();
-                    oscTap.type = 'sine';
-                    oscTap.frequency.setValueAtTime(300, audioCtx.currentTime);
+                    oscTap.type = 'sine'; oscTap.frequency.setValueAtTime(300, audioCtx.currentTime);
                     oscTap.frequency.exponentialRampToValueAtTime(100, audioCtx.currentTime + 0.1);
                     gainTap.gain.setValueAtTime(0.5, audioCtx.currentTime);
                     gainTap.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
